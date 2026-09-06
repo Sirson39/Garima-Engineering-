@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+{% block title %}{{ object.project_number }} | {{ organization.company_name }}{% endblock %}
+{% block content %}
+<div class="surface p-4 mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+    <div>
+      <div class="page-title mb-1">{{ object.project_number }}</div>
+      <div class="page-subtitle">{{ object.client.full_name }} | {{ object.service_type.name }}</div>
+      <div class="small soft-muted mt-2">Registered {{ object.registration_date }} {% if object.registration_date_bs %}({{ object.registration_date_bs }}){% endif %}</div>
+    </div>
+    <div class="text-end">
+      <div class="badge text-bg-info mb-2">{{ object.status }}</div><br>
+      <div class="small soft-muted">Due {% if object.current_stage_record and object.current_stage_record.due_date %}{{ object.current_stage_record.due_date }}{% elif object.expected_completion_date %}{{ object.expected_completion_date }}{% else %}-{% endif %}</div>
+      <div class="small soft-muted">Progress {{ progress_percent }}%</div>
+    </div>
+  </div>
+  <div class="progress mt-3" style="height: 10px;">
+    <div class="progress-bar" style="width: {{ progress_percent }}%"></div>
+  </div>
+
+  <div class="row g-3 mt-3">
+    <div class="col-md-3"><div class="surface-soft p-3 h-100"><div class="soft-muted small">Current stage</div><div class="fw-semibold">{{ object.current_stage_template.name|default:object.status }}</div></div></div>
+    <div class="col-md-3"><div class="surface-soft p-3 h-100"><div class="soft-muted small">Responsible</div><div class="fw-semibold">{{ object.current_responsible_employee.display_name|default:"Unassigned" }}</div></div></div>
+    <div class="col-md-3"><div class="surface-soft p-3 h-100"><div class="soft-muted small">File holder</div><div class="fw-semibold">{{ object.current_file_holder|default:object.current_file_location }}</div></div></div>
+    <div class="col-md-3"><div class="surface-soft p-3 h-100"><div class="soft-muted small">Balance</div><div class="fw-semibold">{{ object.remaining_balance|floatformat:2 }}</div></div></div>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 mt-3">
+    <a class="btn btn-primary" href="{% url 'project-document-upload' object.pk %}">Upload Document</a>
+    <a class="btn btn-outline-primary" href="{% url 'project-task-create' object.pk %}">Add Task</a>
+    <a class="btn btn-outline-primary" href="{% url 'project-file-transfer-create' object.pk %}">Record File Handover</a>
+    <a class="btn btn-outline-primary" href="{% url 'project-site-visit-create' object.pk %}">Add Site Visit</a>
+    <a class="btn btn-outline-primary" href="{% url 'project-government-record-create' object.pk %}">Government Record</a>
+    <a class="btn btn-outline-primary" href="{% url 'project-municipality-activity-create' object.pk %}">Municipality Note</a>
+    <a class="btn btn-accent" href="{% url 'project-payment-create' object.pk %}">Add Payment</a>
+    <a class="btn btn-outline-secondary" href="{% url 'project-comment-create' object.pk %}">Add Comment</a>
+  </div>
+</div>
+
+{% if missing_documents %}
+  <div class="alert alert-warning">
+    <strong>Missing mandatory documents:</strong>
+    {% for item in missing_documents %}{{ item.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+  </div>
+{% endif %}
+
+<ul class="nav nav-tabs mb-3" id="projectTabs" role="tablist">
+  <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#overview" type="button">Overview</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#documents" type="button">Documents</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#workflow" type="button">Workflow</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tasks" type="button">Tasks</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#visits" type="button">Site Visits</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#government" type="button">Government</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#municipality" type="button">Municipality</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#files" type="button">File Register</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#payments" type="button">Payments</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#comments" type="button">Comments</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#audit" type="button">Audit</button></li>
+</ul>
+
+<div class="tab-content">
+  <div class="tab-pane fade show active" id="overview">
+    <div class="row g-3">
+      <div class="col-xl-7">
+        <div class="surface p-3 mb-3">
+          <div class="section-title">Project Information</div>
+          <div class="table-responsive">
+            <table class="table table-sm mb-0">
+              <tbody>
+                <tr><th>Client</th><td>{{ object.client.full_name }}</td></tr>
+                <tr><th>Mobile</th><td>{{ object.client.mobile_number }}</td></tr>
+                <tr><th>Citizenship</th><td>{{ object.client.citizenship_number|default:"-" }}</td></tr>
+                <tr><th>Municipality</th><td>{{ object.municipality|default:"-" }}</td></tr>
+                <tr><th>Ward</th><td>{{ object.ward_number|default:"-" }}</td></tr>
+                <tr><th>Property location</th><td>{{ object.property_location|default:"-" }}</td></tr>
+                <tr><th>Kitta / Sheet</th><td>{{ object.kitta_number|default:"-" }} / {{ object.sheet_number|default:"-" }}</td></tr>
+                <tr><th>Government application no.</th><td>{{ object.government_application_number|default:"-" }}</td></tr>
+                <tr><th>Project fee</th><td>{{ object.project_fee|floatformat:2 }}</td></tr>
+                <tr><th>Amount received</th><td>{{ object.amount_received|floatformat:2 }}</td></tr>
+                <tr><th>Remaining balance</th><td>{{ object.remaining_balance|floatformat:2 }}</td></tr>
+                <tr><th>Current file holder</th><td>{{ object.current_file_holder|default:object.current_file_location }}</td></tr>
+                <tr><th>Last file handover</th><td>{{ object.last_file_handover_at|default:"-" }}</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-5">
+        <div class="surface p-3 mb-3">
+          <div class="section-title">Workflow Control</div>
+          <form method="post" action="{% url 'project-stage-advance' object.pk %}">
+            {% csrf_token %}
+            {% for field in stage_form.hidden_fields %}{{ field }}{% endfor %}
+            <div class="row g-3">
+              {% for field in stage_form.visible_fields %}
+                <div class="{% if field.name in 'comments override_reason' %}col-12{% else %}col-md-6{% endif %}">
+                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                </div>
+              {% endfor %}
+            </div>
+            <div class="mt-3">
+              <button class="btn btn-primary" type="submit">Move to next stage</button>
+            </div>
+          </form>
+        </div>
+
+      <div class="surface p-3">
+          <div class="section-title">Audit Meta</div>
+          <div class="small soft-muted">Created by: {{ object.created_by.display_name|default:"-" }}</div>
+          <div class="small soft-muted">Updated by: {{ object.updated_by.display_name|default:"-" }}</div>
+          <div class="small soft-muted">QR link: <span class="text-break">{{ qr_url }}</span></div>
+        </div>
+
+        <div class="surface p-3 mt-3 text-center">
+          <div class="section-title">Project File QR</div>
+          <img src="{% url 'project-qr-image' object.pk %}" alt="Project QR code" class="img-fluid rounded border bg-white p-2" style="max-width: 240px;">
+          <div class="small soft-muted mt-2">Printable QR code for the physical file label</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-pane fade" id="documents">
+    <div class="surface p-3 mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="section-title mb-0">Document Checklist</div>
+        <a class="btn btn-sm btn-primary" href="{% url 'project-document-upload' object.pk %}">Upload document</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr><th>Document</th><th>Required</th><th>Received</th><th>Scanned</th><th>Verified</th><th>Exception</th><th>Uploaded File</th></tr>
+          </thead>
+          <tbody>
+            {% for item in checklist_items %}
+              <tr>
+                <td>{{ item.name }}</td>
+                <td>{% if item.required %}<span class="badge text-bg-danger">Required</span>{% else %}<span class="badge text-bg-secondary">Optional</span>{% endif %}</td>
+                <td>{% if item.received %}<span class="badge text-bg-success">Yes</span>{% else %}<span class="badge text-bg-light">No</span>{% endif %}</td>
+                <td>{% if item.scanned %}<span class="badge text-bg-success">Yes</span>{% else %}<span class="badge text-bg-light">No</span>{% endif %}</td>
+                <td>{% if item.verified %}<span class="badge text-bg-success">Yes</span>{% else %}<span class="badge text-bg-light">No</span>{% endif %}</td>
+                <td>{% if item.exception_approved_by %}<span class="badge text-bg-warning">Approved</span>{% else %}-{% endif %}</td>
+                <td>{% if item.uploaded_document %}<a href="{% url 'document-download' item.uploaded_document.pk %}">{{ item.uploaded_document.display_name }}</a>{% else %}-{% endif %}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="7" class="text-center text-muted py-4">No checklist items configured.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="surface p-3">
+      <div class="section-title">Recent Documents</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>Document</th><th>Revision</th><th>Status</th><th>Uploaded By</th><th>Action</th></tr></thead>
+          <tbody>
+            {% for document in recent_documents %}
+              <tr>
+                <td>{{ document.display_name }}</td>
+                <td>{{ document.revision_number }}</td>
+                <td>{{ document.approval_status }}</td>
+                <td>{{ document.uploaded_by.display_name|default:"-" }}</td>
+                <td><a class="btn btn-sm btn-outline-primary" href="{% url 'document-download' document.pk %}">Download</a></td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5" class="text-center text-muted py-4">No documents uploaded yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-pane fade" id="workflow">
+    <div class="surface p-3">
+      <div class="section-title">Workflow History</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>Stage</th><th>Status</th><th>Assigned</th><th>Started</th><th>Completed</th><th>Due</th><th>Days</th></tr></thead>
+          <tbody>
+            {% for stage in stage_histories %}
+              <tr>
+                <td>{{ stage.stage_name }}</td>
+                <td>{{ stage.status }}</td>
+                <td>{{ stage.assigned_employee.display_name|default:"-" }}</td>
+                <td>{{ stage.started_at }}</td>
+                <td>{{ stage.completed_at|default:"-" }}</td>
+                <td>{{ stage.due_date|default:"-" }}</td>
+                <td>{{ stage.days_at_stage }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="7" class="text-center text-muted py-4">No workflow history yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-pane fade" id="tasks">
+    <div class="surface p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="section-title mb-0">Tasks</div>
+        <a class="btn btn-sm btn-primary" href="{% url 'project-task-create' object.pk %}">Add task</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>Task</th><th>Assigned To</th><th>Status</th><th>Priority</th><th>Due</th></tr></thead>
+          <tbody>
+            {% for task in tasks %}
+              <tr>
+                <td>{{ task.title }}</td>
+                <td>{{ task.assigned_employee.display_name|default:"-" }}</td>
+                <td>{{ task.status }}</td>
+                <td>{{ task.priority }}</td>
+                <td>{{ task.due_date|default:"-" }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5" class="text-center text-muted py-4">No tasks yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-pane fade" id="visits">
+    <div class="surface p-3">
+      <div class="section-title">Site Visits</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>Engineer</th><th>Scheduled</th><th>Actual</th><th>Status</th><th>Follow-up</th></tr></thead>
+          <tbody>
+            {% for visit in site_visits %}
+              <tr>
+                <td>{{ visit.assigned_engineer.display_name|default:"-" }}</td>
+                <td>{{ visit.scheduled_date|default:"-" }}</td>
+                <td>{{ visit.actual_visit_date|default:"-" }}</td>
+                <td>{{ visit.visit_status }}</td>
+                <td>{% if visit.follow_up_required %}Yes{% else %}No{% endif %}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5" class="text-center text-muted py-4">No site visits yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-pane fade" id="government">
+    <div class="surface p-3">
+      <div class="section-title">Government Online Records</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>Municipality</th><th>App No.</th><th>Type</th><th>Status</th><th>Last Checked</th></tr></thead>
+          <tbody>
+            {% for record in government_records %}
+              <tr>
+                <td>{{ record.municipality|default:"-" }}</td>
+                <td>{{ record.government_application_number|default:"-" }}</td>
+                <td>{{ record.submission_type }}</td>
+                <td>{{ record.current_online_status }}</td>
+                <td>{{ record.last_checked_date|default:"-" }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5" class="text-center text-muted py-4">No government records yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-pane fade" id="municipality">
+    <div class="surface p-3">
+      <div class="section-title">Municipality Activity</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>Type</th><th>Details</th><th>Resolved</th><th>Recorded At</th></tr></thead>
+          <tbody>
+            {% for activity in municipality_activities %}
+              <tr>
+                <td>{{ activity.activity_type }}</td>
+                <td>{{ activity.details }}</td>
+                <td>{% if activity.is_resolved %}Yes{% else %}No{% endif %}</td>
+                <td>{{ activity.recorded_at }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="4" class="text-center text-muted py-4">No municipality activity yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-pane fade" id="files">
+    <div class="surface p-3">
+      <div class="section-title">Physical File History</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>From</th><th>To</th><th>Location</th><th>Purpose</th><th>Transferred</th><th>Received</th></tr></thead>
+          <tbody>
+            {% for transfer in file_transfers %}
+              <tr>
+                <td>{{ transfer.file_transferred_from }}</td>
+                <td>{{ transfer.file_transferred_to }}</td>
+                <td>{{ transfer.current_location }}</td>
+                <td>{{ transfer.purpose }}</td>
+                <td>{{ transfer.transfer_date_time }}</td>
+                <td>{% if transfer.received_confirmation %}Yes{% else %}No{% endif %}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="6" class="text-center text-muted py-4">No file handovers yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-pane fade" id="payments">
+    <div class="surface p-3">
+      <div class="section-title">Payments</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>Date</th><th>Method</th><th>Received</th><th>Balance</th><th>Receipt</th></tr></thead>
+          <tbody>
+            {% for payment in payments %}
+              <tr>
+                <td>{{ payment.payment_date|default:"-" }}</td>
+                <td>{{ payment.payment_method }}</td>
+                <td>{{ payment.amount_received|floatformat:2 }}</td>
+                <td>{{ payment.remaining_balance|floatformat:2 }}</td>
+                <td>{{ payment.receipt_number|default:"-" }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5" class="text-center text-muted py-4">No payments recorded yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-pane fade" id="comments">
+    <div class="surface p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="section-title mb-0">Comments</div>
+        <a class="btn btn-sm btn-primary" href="{% url 'project-comment-create' object.pk %}">Add comment</a>
+      </div>
+      {% for comment in comments %}
+        <div class="timeline-item mb-3">
+          <div class="fw-semibold">{{ comment.commenter.display_name|default:"System" }} <span class="badge badge-soft ms-2">{{ comment.visibility }}</span></div>
+          <div class="soft-muted small">{{ comment.created_at }}</div>
+          <div>{{ comment.comment }}</div>
+        </div>
+      {% empty %}
+        <div class="text-muted">No comments yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="tab-pane fade" id="audit">
+    <div class="surface p-3">
+      <div class="section-title">Audit Timeline</div>
+      {% for entry in audit_logs %}
+        <div class="timeline-item mb-3">
+          <div class="fw-semibold">{{ entry.action }}</div>
+          <div class="soft-muted small">{{ entry.created_at }} by {{ entry.actor.display_name|default:"System" }}</div>
+          <div>{{ entry.summary|default:"-" }}</div>
+        </div>
+      {% empty %}
+        <div class="text-muted">No audit records yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

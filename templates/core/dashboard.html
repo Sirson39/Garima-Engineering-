@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load garima %}
+{% block title %}Dashboard | {{ organization.company_name }}{% endblock %}
+{% block content %}
+<section class="dashboard-heading">
+  <div>
+    <div class="eyebrow">{{ organization.default_bs_year }} BS · Today</div>
+    <h1 class="dashboard-title">Good morning, {{ user.first_name|default:user.username }}</h1>
+    <p class="dashboard-subtitle">You have {{ today_tasks }} task{{ today_tasks|pluralize }} due today and {{ waiting_client }} project{{ waiting_client|pluralize }} waiting for action.</p>
+  </div>
+  <div class="dashboard-actions">
+    <a class="btn btn-primary btn-action" href="{% url 'project-create' %}"><span class="action-symbol">+</span> New Project</a>
+    <a class="btn btn-outline-primary btn-action" href="{% url 'client-create' %}"><span class="action-symbol">+</span> Add Client</a>
+    <a class="btn btn-light-brand btn-action" href="{% url 'documents' %}"><span class="action-symbol action-upload">↑</span> Upload Document</a>
+  </div>
+</section>
+
+<section class="metric-grid" aria-label="Daily project metrics">
+  <a class="metric-card {% if active_projects %}metric-blue{% else %}metric-neutral{% endif %}" href="{% url 'project-list' %}">
+    <span class="metric-label">Active Projects</span><strong class="metric-value">{{ active_projects }}</strong><span class="metric-meta">Across all workflows <span>→</span></span>
+  </a>
+  <a class="metric-card {% if overdue_tasks %}metric-red{% elif today_tasks %}metric-blue{% else %}metric-neutral{% endif %}" href="{% url 'tasks' %}">
+    <span class="metric-label">My Tasks Today</span><strong class="metric-value">{{ today_tasks }}</strong><span class="metric-meta">{{ overdue_tasks }} overdue <span>→</span></span>
+  </a>
+  <a class="metric-card {% if waiting_client %}metric-orange{% else %}metric-neutral{% endif %}" href="{% url 'project-list' %}?status=Waiting+for+Client+Approval">
+    <span class="metric-label">Waiting for Client</span><strong class="metric-value">{{ waiting_client }}</strong><span class="metric-meta">Needs follow-up <span>→</span></span>
+  </a>
+  <a class="metric-card {% if waiting_ward %}metric-orange{% else %}metric-neutral{% endif %}" href="{% url 'project-list' %}?status=Waiting+for+Ward">
+    <span class="metric-label">Waiting for Ward</span><strong class="metric-value">{{ waiting_ward }}</strong><span class="metric-meta">Signature or response <span>→</span></span>
+  </a>
+  <a class="metric-card {% if at_municipality %}metric-blue{% else %}metric-neutral{% endif %}" href="{% url 'project-list' %}?status=At+Municipality">
+    <span class="metric-label">At Municipality</span><strong class="metric-value">{{ at_municipality }}</strong><span class="metric-meta">Track submission status <span>→</span></span>
+  </a>
+</section>
+
+<a class="missing-panel" href="{% url 'project-list' %}" aria-label="View affected projects with missing documents">
+  <span class="missing-icon">!</span>
+  <span class="missing-copy"><strong>{{ missing_documents }} missing document{{ missing_documents|pluralize }} across {{ missing_projects }} project{{ missing_projects|pluralize }}</strong><small>Resolve document gaps before the next workflow step.</small></span>
+  <span class="missing-link">View affected projects <span>→</span></span>
+</a>
+
+<section class="dashboard-columns">
+  <div class="surface dashboard-panel">
+    <div class="panel-heading"><div><h2>Recent Projects</h2><p>Projects requiring the most attention recently</p></div><a href="{% url 'project-list' %}" class="panel-link">View all <span>→</span></a></div>
+    <div class="table-responsive">
+      <table class="table dashboard-table mb-0">
+        <thead><tr><th>Project ID</th><th>Client</th><th>Project Type</th><th>Current Stage</th><th>Responsible Staff</th><th>Next Action</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for row in recent_project_rows %}
+            {% with project=row.project %}
+            <tr class="clickable-row" data-href="{% url 'project-detail' project.pk %}" tabindex="0">
+              <td><a class="project-id" href="{% url 'project-detail' project.pk %}">{{ project.project_number }}</a></td>
+              <td><span class="client-name">{{ project.client.full_name }}</span><small>{{ project.municipality|default:"Location not set" }}</small></td>
+              <td>{{ project.service_type.name }}</td><td>{{ project.current_stage_template.name|default:project.status }}</td>
+              <td>{{ project.current_responsible_employee.display_name|default:"Unassigned" }}</td><td class="next-action">{{ row.next_action }}</td>
+              <td><span class="status-badge {{ row.status_class }}">{{ project.status }}</span></td>
+            </tr>
+            {% endwith %}
+          {% empty %}<tr><td colspan="7" class="empty-state">No projects yet.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <aside class="dashboard-side">
+    <div class="surface dashboard-panel">
+      <div class="panel-heading"><div><h2>Today’s Tasks</h2><p>Your current work queue</p></div><a href="{% url 'tasks' %}" class="panel-link">All <span>→</span></a></div>
+      <div class="task-list">
+        {% for task in recent_tasks|slice:":4" %}
+          <a class="task-item" href="{% url 'project-detail' task.project_id %}"><span class="task-dot {% if task.status == 'Completed' %}task-dot-green{% elif task.due_date and task.due_date < today %}task-dot-red{% else %}task-dot-blue{% endif %}"></span><span><strong>{{ task.title }}</strong><small>{{ task.project.project_number }} · {{ task.due_date|default:"No due date" }}</small></span></a>
+        {% empty %}<div class="empty-state">No tasks assigned yet.</div>{% endfor %}
+      </div>
+    </div>
+    <div class="surface dashboard-panel status-panel">
+      <div class="panel-heading"><div><h2>Workflow Snapshot</h2><p>Where work is currently sitting</p></div></div>
+      {% for label, value in status_counts.items %}{% if value %}<div class="snapshot-row"><span>{{ label }}</span><strong>{{ value }}</strong></div>{% endif %}{% endfor %}
+    </div>
+  </aside>
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+  document.querySelectorAll('.clickable-row').forEach(function (row) {
+    row.addEventListener('click', function (event) { if (!event.target.closest('a')) window.location.href = row.dataset.href; });
+    row.addEventListener('keydown', function (event) { if (event.key === 'Enter') window.location.href = row.dataset.href; });
+  });
+</script>
+{% endblock %}

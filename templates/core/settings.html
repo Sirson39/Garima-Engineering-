@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}System Settings | {{ organization.company_name }}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+  <div>
+    <div class="page-title">System Settings</div>
+    <div class="page-subtitle">Branding and company-level configuration</div>
+  </div>
+</div>
+
+<div class="surface p-4">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div class="row g-3">
+      {% for field in form.visible_fields %}
+        <div class="col-md-6 {% if field.name in 'address public_notice' %}col-12{% endif %}">
+          <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+          {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+    <div class="mt-4">
+      <button class="btn btn-primary" type="submit">Save settings</button>
+    </div>
+  </form>
+</div>
+
+<div class="surface p-4 mt-4">
+  <div class="section-title">Workflow and Numbering</div>
+  <p class="soft-muted mb-0">Workflow stages, document templates, and numbering schemes are managed from the workflow catalogue and Django admin so administrators can adjust them without touching source code.</p>
+</div>
+{% endblock %}
+

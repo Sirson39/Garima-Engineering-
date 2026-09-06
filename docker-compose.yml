@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: garima
+      POSTGRES_USER: garima
+      POSTGRES_PASSWORD: garima
+    ports:
+      - "5432:5432"
+    volumes:
+      - garima_pgdata:/var/lib/postgresql/data
+
+  web:
+    build: .
+    command: sh -c "python manage.py migrate && python manage.py seed_demo_data && gunicorn config.wsgi:application --bind 0.0.0.0:8000"
+    environment:
+      DJANGO_DEBUG: "false"
+      DJANGO_SECRET_KEY: "replace-me"
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1"
+      POSTGRES_DB: garima
+      POSTGRES_USER: garima
+      POSTGRES_PASSWORD: garima
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+    volumes:
+      - .:/app
+      - garima_media:/app/media
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+volumes:
+  garima_pgdata:
+  garima_media:
+

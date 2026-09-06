@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Reports | {{ organization.company_name }}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+  <div>
+    <div class="page-title">Reports</div>
+    <div class="page-subtitle">Quick operational snapshots for management</div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3"><div class="stat-card p-3"><div class="stat-label">Projects</div><div class="stat-value">{{ project_count }}</div></div></div>
+  <div class="col-md-3"><div class="stat-card p-3"><div class="stat-label">Missing Docs</div><div class="stat-value">{{ missing_documents }}</div></div></div>
+  <div class="col-md-3"><div class="stat-card p-3"><div class="stat-label">Overdue Tasks</div><div class="stat-value">{{ overdue_tasks }}</div></div></div>
+  <div class="col-md-3"><div class="stat-card p-3"><div class="stat-label">Physical Files Outside</div><div class="stat-value">{{ physical_files_outside }}</div></div></div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="surface p-3">
+      <div class="section-title">Stage Distribution</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <tbody>
+            {% for label, value in status_counts.items %}
+              <tr><td>{{ label }}</td><td class="text-end">{{ value }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="surface p-3">
+      <div class="section-title">Actionable Work</div>
+      <ul class="mb-0">
+        <li>Projects waiting for client: {{ waiting_client }}</li>
+        <li>Projects waiting for ward: {{ waiting_ward }}</li>
+        <li>Projects at municipality: {{ at_municipality }}</li>
+        <li>Municipality corrections received: {{ municipality_corrections }}</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

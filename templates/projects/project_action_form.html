@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}{{ project_action_title }} | {{ organization.company_name }}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+  <div>
+    <div class="page-title">{{ project.project_number }}</div>
+    <div class="page-subtitle">{{ project.client.full_name }} - {{ project.service_type.name }}</div>
+  </div>
+  <a class="btn btn-outline-secondary" href="{% url 'project-detail' project.pk %}">Back to project</a>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-4">
+    <div class="surface p-3">
+      <div class="section-title">Project Summary</div>
+      <dl class="row mb-0 small">
+        <dt class="col-5 soft-muted">Stage</dt><dd class="col-7">{{ project.current_stage_template.name|default:project.status }}</dd>
+        <dt class="col-5 soft-muted">Responsible</dt><dd class="col-7">{{ project.current_responsible_employee.display_name|default:"Unassigned" }}</dd>
+        <dt class="col-5 soft-muted">File holder</dt><dd class="col-7">{{ project.current_file_holder|default:project.current_file_location }}</dd>
+        <dt class="col-5 soft-muted">Balance</dt><dd class="col-7">{{ project.remaining_balance|floatformat:2 }}</dd>
+      </dl>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="surface p-4">
+      <div class="section-title">{{ project_action_title }}</div>
+      <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="row g-3">
+          {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+          {% for field in form.visible_fields %}
+            <div class="col-md-6 {% if field.field.widget.input_type == 'textarea' %}col-12{% endif %}">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+              {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+          {% endfor %}
+        </div>
+        <div class="mt-4 d-flex gap-2">
+          <button class="btn btn-primary" type="submit">Save</button>
+          <a class="btn btn-outline-secondary" href="{% url 'project-detail' project.pk %}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{{ object.project_number }} | QR Access{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-xl-8 col-lg-10">
+    <div class="surface p-4">
+      <div class="text-center mb-4">
+        <div class="badge text-bg-info mb-2">Project QR Access</div>
+        <h1 class="h3 mb-1">{{ object.project_number }}</h1>
+        <div class="soft-muted">{{ object.client.full_name }} | {{ object.service_type.name }}</div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-md-4"><div class="surface-soft p-3"><div class="soft-muted small">Current stage</div><div class="fw-semibold">{{ object.current_stage_template.name|default:object.status }}</div></div></div>
+        <div class="col-md-4"><div class="surface-soft p-3"><div class="soft-muted small">Responsible</div><div class="fw-semibold">{{ object.current_responsible_employee.display_name|default:"Unassigned" }}</div></div></div>
+        <div class="col-md-4"><div class="surface-soft p-3"><div class="soft-muted small">Physical file</div><div class="fw-semibold">{{ object.current_file_holder|default:object.current_file_location }}</div></div></div>
+      </div>
+
+      <div class="alert alert-info">
+        Scan destination for the project file QR. Authenticated staff can open the full project page and record file handovers.
+      </div>
+
+      <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-primary" href="{% url 'project-detail' object.pk %}">Open project</a>
+        <button class="btn btn-outline-secondary" onclick="window.print()">Print</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

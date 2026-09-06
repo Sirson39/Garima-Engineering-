@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }} | {{ organization.company_name }}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+  <div>
+    <div class="page-title">{{ page_title }}</div>
+    <div class="page-subtitle">{% if object %}Update the record{% else %}Create a new record{% endif %}</div>
+  </div>
+  <a class="btn btn-outline-secondary" href="javascript:history.back()">Back</a>
+</div>
+
+<div class="surface p-4">
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div class="row g-3">
+      {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+      {% for field in form.visible_fields %}
+        <div class="col-md-6 {% if field.field.widget.input_type == 'textarea' or field.name in 'internal_remarks client_visible_remarks notes permanent_address current_address' %}col-12{% endif %}">
+          <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+          {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+    <div class="mt-4 d-flex gap-2">
+      <button class="btn btn-primary" type="submit">Save</button>
+      <a class="btn btn-outline-secondary" href="javascript:history.back()">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

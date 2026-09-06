@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Workflow Catalog | {{ organization.company_name }}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+  <div>
+    <div class="page-title">Workflow Catalog</div>
+    <div class="page-subtitle">Service types, numbering schemes, document templates, and stages</div>
+  </div>
+  <div class="badge badge-soft px-3 py-2">{{ stage_count }} stages, {{ document_template_count }} document templates</div>
+</div>
+
+<div class="surface p-3 mb-4">
+  <div class="section-title">Numbering Schemes</div>
+  <div class="table-responsive">
+    <table class="table table-sm mb-0">
+      <thead>
+        <tr><th>Service</th><th>Prefix</th><th>Service Code</th><th>Year</th><th>Next Seq</th><th>Pattern</th></tr>
+      </thead>
+      <tbody>
+        {% for scheme in numbering_schemes %}
+          <tr>
+            <td>{{ scheme.service_type.name }}</td>
+            <td>{{ scheme.prefix }}</td>
+            <td>{{ scheme.service_code }}</td>
+            <td>{{ scheme.year_label }}</td>
+            <td>{{ scheme.next_sequence }}</td>
+            <td><code>{{ scheme.format_template }}</code></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4">No numbering schemes configured.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="row g-3">
+  {% for service in service_types %}
+    <div class="col-lg-6">
+      <div class="surface p-3 h-100">
+        <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+          <div>
+            <div class="section-title mb-1">{{ service.name }}</div>
+            <div class="soft-muted small">{{ service.description|default:"Configured service workflow" }}</div>
+          </div>
+          <span class="badge text-bg-info">{{ service.code }}</span>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="surface-soft p-3 h-100">
+              <div class="fw-semibold mb-2">Workflow stages</div>
+              <ol class="mb-0 small">
+                {% for stage in service.workflow_stages.all %}
+                  <li>{{ stage.name }} <span class="text-muted">({{ stage.default_status }})</span></li>
+                {% empty %}
+                  <li class="text-muted">No stages configured.</li>
+                {% endfor %}
+              </ol>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="surface-soft p-3 h-100">
+              <div class="fw-semibold mb-2">Document templates</div>
+              <ul class="mb-0 small">
+                {% for doc in service.document_templates.all %}
+                  <li>{{ doc.name }} {% if doc.required %}<span class="text-danger">*</span>{% endif %}</li>
+                {% empty %}
+                  <li class="text-muted">No document templates configured.</li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}
+
