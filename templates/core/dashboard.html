@@ -16,19 +16,19 @@
 </section>
 
 <section class="metric-grid" aria-label="Daily project metrics">
-  <a class="metric-card {% if active_projects %}metric-blue{% else %}metric-neutral{% endif %}" href="{% url 'project-list' %}">
+  <a class="metric-card metric-blue" href="{% url 'project-list' %}">
     <span class="metric-label">Active Projects</span><strong class="metric-value">{{ active_projects }}</strong><span class="metric-meta">Across all workflows <span>→</span></span>
   </a>
-  <a class="metric-card {% if overdue_tasks %}metric-red{% elif today_tasks %}metric-blue{% else %}metric-neutral{% endif %}" href="{% url 'tasks' %}">
+  <a class="metric-card metric-red" href="{% url 'tasks' %}">
     <span class="metric-label">My Tasks Today</span><strong class="metric-value">{{ today_tasks }}</strong><span class="metric-meta">{{ overdue_tasks }} overdue <span>→</span></span>
   </a>
-  <a class="metric-card {% if waiting_client %}metric-orange{% else %}metric-neutral{% endif %}" href="{% url 'project-list' %}?status=Waiting+for+Client+Approval">
+  <a class="metric-card metric-orange" href="{% url 'project-list' %}?status=Waiting+for+Client+Approval">
     <span class="metric-label">Waiting for Client</span><strong class="metric-value">{{ waiting_client }}</strong><span class="metric-meta">Needs follow-up <span>→</span></span>
   </a>
-  <a class="metric-card {% if waiting_ward %}metric-orange{% else %}metric-neutral{% endif %}" href="{% url 'project-list' %}?status=Waiting+for+Ward">
+  <a class="metric-card metric-orange" href="{% url 'project-list' %}?status=Waiting+for+Ward">
     <span class="metric-label">Waiting for Ward</span><strong class="metric-value">{{ waiting_ward }}</strong><span class="metric-meta">Signature or response <span>→</span></span>
   </a>
-  <a class="metric-card {% if at_municipality %}metric-blue{% else %}metric-neutral{% endif %}" href="{% url 'project-list' %}?status=At+Municipality">
+   <a class="metric-card metric-green" href="{% url 'project-list' %}?status=At+Municipality">
     <span class="metric-label">At Municipality</span><strong class="metric-value">{{ at_municipality }}</strong><span class="metric-meta">Track submission status <span>→</span></span>
   </a>
 </section>
