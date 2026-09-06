@@ -5,44 +5,114 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Login | {{ organization.company_name }}</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
 </head>
-<body>
-  <div class="min-vh-100 d-flex align-items-center justify-content-center px-3">
-    <div class="surface p-4 p-md-5" style="max-width: 460px; width: 100%;">
-      <div class="text-center mb-4">
-        <div class="brand-mark mx-auto mb-3">
-          {% if organization.logo %}
-            <img src="{{ organization.logo.url }}" alt="{{ organization.company_name }}">
-          {% else %}
-            <span>GEC</span>
-          {% endif %}
-        </div>
-        <h1 class="h4 mb-1">{{ organization.company_name }}</h1>
-        <div class="soft-muted">Engineering consultancy management system</div>
-      </div>
-
-      <form method="post" novalidate>
-        {% csrf_token %}
-        {% if form.non_field_errors %}
-          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+<body class="reference-login-page">
+  <main class="reference-login-shell">
+    <section class="reference-login-form" aria-labelledby="login-title">
+      <a class="reference-login-brand" href="#" aria-label="{{ organization.company_name }}">
+        {% if organization.logo %}
+          <img src="{{ organization.logo.url }}" alt="{{ organization.company_name }} logo">
+        {% else %}
+          <img src="{% static 'image/garima_logo-removebg-preview.png' %}" alt="{{ organization.company_name }} logo">
         {% endif %}
-        <div class="mb-3">
-          <label class="form-label" for="{{ form.username.id_for_label }}">Username</label>
-          {{ form.username }}
-          {% for error in form.username.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
-        </div>
-        <div class="mb-3">
-          <label class="form-label" for="{{ form.password.id_for_label }}">Password</label>
-          {{ form.password }}
-          {% for error in form.password.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
-        </div>
-        <button class="btn btn-primary w-100" type="submit">Sign in</button>
-      </form>
-      <p class="text-center soft-muted small mt-3 mb-0">Secure role-based access with login attempt limiting.</p>
-    </div>
-  </div>
+        <span class="reference-login-brand-title">{{ organization.company_name }}</span>
+      </a>
+
+      <div class="reference-login-content">
+        <div class="reference-login-kicker">GARIMA ENGINEERING CONSULTANCY</div>
+        <h1 id="login-title">Sign in</h1>
+        <p>Access your engineering consultancy workspace.</p>
+
+        <form method="post" novalidate onsubmit="this.querySelector('.reference-login-submit').disabled = true; this.querySelector('.reference-submit-label').textContent = 'Signing in...';">
+          {% csrf_token %}
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger reference-login-alert">{{ form.non_field_errors }}</div>
+          {% endif %}
+          <div class="reference-field">
+            <label for="{{ form.username.id_for_label }}">Username</label>
+            <div class="reference-input-wrap">
+              <svg class="reference-input-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5 20c.6-3.2 2.8-5 7-5s6.4 1.8 7 5"/></svg>
+              {{ form.username }}
+            </div>
+            {% for error in form.username.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+          <div class="reference-field">
+            <label for="{{ form.password.id_for_label }}">Password</label>
+            <div class="reference-input-wrap">
+              <svg class="reference-input-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+              {{ form.password }}
+              <button class="reference-password-toggle" type="button" aria-label="Show password" aria-pressed="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12s3-5 9-5 9 5 9 5-3 5-9 5-9-5-9-5z"/><circle cx="12" cy="12" r="2"/></svg>
+              </button>
+            </div>
+            {% for error in form.password.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+          <div class="reference-field">
+            <label for="reference-role">Role</label>
+            <div class="reference-input-wrap reference-select-wrap">
+              <svg class="reference-input-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16M6 20V9l6-5 6 5v11M9 20v-6h6v6"/></svg>
+              <select class="reference-select" id="reference-role" name="role">
+                <option value="">Select your role</option>
+                <option value="admin">Admin</option>
+                <option value="engineer">Engineer</option>
+                <option value="staff">Staff</option>
+                <option value="field-staff">Field Staff</option>
+              </select>
+              <svg class="reference-select-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div class="reference-login-options">
+            <label><input type="checkbox" name="remember_me"> Remember me</label>
+          </div>
+          <button class="reference-login-submit" type="submit"><span class="reference-submit-label">Login</span><span aria-hidden="true">&rarr;</span></button>
+        </form>
+        <div class="reference-security">Secure access for authorised Garima staff only.</div>
+      </div>
+    </section>
+
+    <section class="reference-login-image" aria-label="Civil engineering construction site">
+      <div class="reference-image-track">
+        <img class="is-active" src="{% static 'image/Civil6.jpg' %}" alt="Civil engineering construction site">
+        <img src="{% static 'image/Civil8.jpeg' %}" alt="Civil engineering construction site">
+        <img src="{% static 'image/Civil5.avif' %}" alt="Civil engineering construction site">
+        <img src="{% static 'image/Civil12.jpg' %}" alt="Civil engineering construction site">
+        <img src="{% static 'image/Civil9.jpeg' %}" alt="Civil engineering construction site">
+        <img src="{% static 'image/Civil 11.webp' %}" alt="Civil engineering construction site">
+        <img src="{% static 'image/civil4.webp' %}" alt="Civil engineering construction site">
+      </div>
+      <div class="reference-image-overlay"></div>
+      <div class="reference-image-caption">
+        <strong>Garima Engineering Consultancy</strong>
+        <span>Dhapasi, Kathmandu, Nepal  ·  +977 9849111646</span>
+      </div>
+    </section>
+  </main>
+  <script>
+    const referenceToggle = document.querySelector(".reference-password-toggle");
+    const referencePassword = document.getElementById("id_password");
+    if (referenceToggle && referencePassword) {
+      referenceToggle.addEventListener("click", function () {
+        const visible = referencePassword.type === "text";
+        referencePassword.type = visible ? "password" : "text";
+        referenceToggle.setAttribute("aria-label", visible ? "Show password" : "Hide password");
+        referenceToggle.setAttribute("aria-pressed", String(!visible));
+      });
+    }
+
+    const referenceImageTrack = document.querySelector(".reference-image-track");
+    const referenceImages = referenceImageTrack ? referenceImageTrack.querySelectorAll("img") : [];
+    let referenceImageIndex = 0;
+    if (referenceImageTrack && referenceImages.length > 1 && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      window.setInterval(function () {
+        referenceImages[referenceImageIndex].classList.remove("is-active");
+        referenceImageIndex = (referenceImageIndex + 1) % referenceImages.length;
+        referenceImages[referenceImageIndex].classList.add("is-active");
+      }, 4500);
+    }
+  </script>
 </body>
 </html>
-

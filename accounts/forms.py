@@ -16,6 +16,23 @@ class GarimaAuthenticationForm(AuthenticationForm):
         "locked": "This account is temporarily locked because of repeated failed login attempts.",
     }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["username"].widget.attrs.update(
+            {
+                "class": "form-control login-input",
+                "autocomplete": "username",
+                "placeholder": "Enter your username",
+            }
+        )
+        self.fields["password"].widget.attrs.update(
+            {
+                "class": "form-control login-input login-password-input",
+                "autocomplete": "current-password",
+                "placeholder": "Enter your password",
+            }
+        )
+
     def clean(self):
         username = self.data.get(self.add_prefix("username"), "").strip()
         ip_address = self.request.META.get("REMOTE_ADDR", "")
@@ -54,4 +71,3 @@ class UserForm(BootstrapFormMixin, forms.ModelForm):
         widgets = {
             "groups": forms.SelectMultiple(attrs={"size": 8}),
         }
-
