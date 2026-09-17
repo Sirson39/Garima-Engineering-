@@ -1,0 +1,26 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Siru Platform | Choose access</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="platform-landing-body">
+  <main class="platform-landing">
+    <header class="platform-landing-header"><a class="platform-login-brand" href="{% url 'platform-landing' %}"><span class="platform-brand-mark">S</span><span><strong>Siru Platform</strong><small>IT company administration</small></span></a><span class="platform-landing-status"><i></i>Secure platform</span></header>
+    <section class="platform-landing-hero"><span class="platform-eyebrow">ONE PLATFORM · MANY ORGANIZATIONS</span><h1>Choose where<br><em>you belong.</em></h1><p>A single, secure entry point for the IT company and the engineering organizations it supports.</p></section>
+    <section class="platform-access-grid" aria-label="Choose your access type">
+      <a class="platform-access-card platform-access-super" href="{% url 'platform-login' %}"><span class="platform-access-icon">⌘</span><span class="platform-access-copy"><small>IT COMPANY</small><strong>Super Admin</strong><em>Manage all organizations and platform settings.</em></span><span class="platform-access-arrow">→</span></a>
+      <a class="platform-access-card" href="{% url 'login' %}?role=admin"><span class="platform-access-icon">▣</span><span class="platform-access-copy"><small>ORGANIZATION MEMBER</small><strong>Admin</strong><em>Manage your organization and team.</em></span><span class="platform-access-arrow">→</span></a>
+      <a class="platform-access-card" href="{% url 'login' %}?role=engineer"><span class="platform-access-icon">⌁</span><span class="platform-access-copy"><small>ORGANIZATION MEMBER</small><strong>Engineer</strong><em>Access engineering projects and workflows.</em></span><span class="platform-access-arrow">→</span></a>
+      <a class="platform-access-card" href="{% url 'login' %}?role=staff"><span class="platform-access-icon">▤</span><span class="platform-access-copy"><small>ORGANIZATION MEMBER</small><strong>Staff</strong><em>Work with documents, clients and daily tasks.</em></span><span class="platform-access-arrow">→</span></a>
+    </section>
+    <footer class="platform-landing-footer"><span>Garima Engineering Consultancy platform</span><span>Organization access is managed separately by each company.</span></footer>
+  </main>
+</body>
+</html>

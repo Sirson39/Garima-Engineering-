@@ -72,6 +72,7 @@
           <button class="reference-login-submit" type="submit"><span class="reference-submit-label">Login</span><span aria-hidden="true">&rarr;</span></button>
         </form>
         <div class="reference-security">Secure access for authorised Garima staff only.</div>
+        <a class="reference-platform-login-link" href="{% url 'platform-landing' %}">IT Company Platform <span aria-hidden="true">&rarr;</span></a>
       </div>
     </section>
 
@@ -264,10 +265,54 @@
     let referenceNepaliMonth = 4;
     let referenceCalendarDate = new Date();
 
+    function getKathmanduDate() {
+      const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Kathmandu",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).formatToParts(new Date());
+      return {
+        year: Number(parts.find(function (part) { return part.type === "year"; }).value),
+        month: Number(parts.find(function (part) { return part.type === "month"; }).value),
+        day: Number(parts.find(function (part) { return part.type === "day"; }).value)
+      };
+    }
+
+    function getNepaliToday() {
+      const kathmandu = getKathmanduDate();
+      const current = Date.UTC(kathmandu.year, kathmandu.month - 1, kathmandu.day);
+      const reference = Date.UTC(2026, 8, 9);
+      let dayOffset = Math.round((current - reference) / 86400000);
+      let year = 2083;
+      let month = 4;
+      let day = 24;
+      while (dayOffset > 0) {
+        day += 1;
+        dayOffset -= 1;
+        if (day > nepaliMonthDays[month]) {
+          day = 1;
+          month += 1;
+          if (month === 12) { month = 0; year += 1; }
+        }
+      }
+      while (dayOffset < 0) {
+        day -= 1;
+        dayOffset += 1;
+        if (day === 0) {
+          month -= 1;
+          if (month < 0) { month = 11; year -= 1; }
+          day = nepaliMonthDays[month];
+        }
+      }
+      return { year, month, day, kathmandu };
+    }
+
     function renderCalendar() {
-      const today = new Date();
-      referenceCalendarEnglish.textContent = new Intl.DateTimeFormat("en-US", { dateStyle: "full" }).format(today);
-      referenceCalendarNepali.textContent = "2083 भदौ 23 बि.सं.";
+      const nepaliToday = getNepaliToday();
+      const kathmanduToday = new Date(Date.UTC(nepaliToday.kathmandu.year, nepaliToday.kathmandu.month - 1, nepaliToday.kathmandu.day));
+      referenceCalendarEnglish.textContent = new Intl.DateTimeFormat("en-US", { dateStyle: "full", timeZone: "Asia/Kathmandu" }).format(kathmanduToday);
+      referenceCalendarNepali.textContent = `${nepaliToday.year} ${nepaliMonths[nepaliToday.month]} ${nepaliToday.day} बि.सं.`;
       referenceCalendarWeekdays.forEach(function (day, index) {
         day.textContent = referenceCalendarMode === "nepali" ? nepaliWeekdays[index] : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][index];
       });
@@ -275,8 +320,8 @@
       let firstDay;
       let totalDays;
       if (referenceCalendarMode === "nepali") {
-        referenceCalendarMonth.textContent = `${nepaliMonths[referenceNepaliMonth]} 2083 B.S.`;
-        const monthStart = new Date(2026, 7, 17);
+        referenceCalendarMonth.textContent = `${nepaliMonths[referenceNepaliMonth]} ${nepaliToday.year} B.S.`;
+        const monthStart = new Date(Date.UTC(2026, 7, 17));
         let offset = 0;
         for (let index = 4; index < referenceNepaliMonth; index += 1) offset += nepaliMonthDays[index];
         for (let index = 0; index < 4; index += 1) offset -= nepaliMonthDays[index];
@@ -285,9 +330,9 @@
       } else {
         const year = referenceCalendarDate.getFullYear();
         const month = referenceCalendarDate.getMonth();
-        referenceCalendarMonth.textContent = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(referenceCalendarDate);
-        firstDay = new Date(year, month, 1).getDay();
-        totalDays = new Date(year, month + 1, 0).getDate();
+        referenceCalendarMonth.textContent = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: "Asia/Kathmandu" }).format(referenceCalendarDate);
+        firstDay = new Date(Date.UTC(year, month, 1)).getUTCDay();
+        totalDays = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
       }
       for (let index = 0; index < firstDay; index += 1) {
         referenceCalendarGrid.appendChild(document.createElement("span"));
@@ -296,8 +341,8 @@
         const button = document.createElement("button");
         button.type = "button";
         button.textContent = day;
-        if (referenceCalendarMode === "english" && referenceCalendarDate.getFullYear() === today.getFullYear() && referenceCalendarDate.getMonth() === today.getMonth() && day === today.getDate()) button.className = "is-today";
-        if (referenceCalendarMode === "nepali" && referenceNepaliMonth === 4 && day === 23) button.className = "is-today";
+        if (referenceCalendarMode === "english" && referenceCalendarDate.getFullYear() === nepaliToday.kathmandu.year && referenceCalendarDate.getMonth() === nepaliToday.kathmandu.month - 1 && day === nepaliToday.kathmandu.day) button.className = "is-today";
+        if (referenceCalendarMode === "nepali" && referenceNepaliMonth === nepaliToday.month && day === nepaliToday.day) button.className = "is-today";
         referenceCalendarGrid.appendChild(button);
       }
     }
@@ -307,7 +352,7 @@
         referenceCalendar.hidden = false;
         referenceCalendarTrigger.setAttribute("aria-expanded", "true");
         referenceCalendarDate = new Date();
-        referenceNepaliMonth = 4;
+        referenceNepaliMonth = getNepaliToday().month;
         renderCalendar();
       });
       referenceCalendarClose.addEventListener("click", function () {

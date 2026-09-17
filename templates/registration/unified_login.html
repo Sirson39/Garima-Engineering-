@@ -1,0 +1,47 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in | Siru Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="siru-login-body">
+  <main class="siru-login-shell">
+    <section class="siru-login-visual" aria-label="Siru Platform overview">
+      <header class="siru-login-brand"><span class="siru-mark">S</span><span><strong>Siru Platform</strong><small>One connected platform for better management</small></span></header><div class="siru-hero-atmosphere" aria-hidden="true"><div class="siru-atmosphere-ring ring-large"></div><div class="siru-atmosphere-ring ring-small"></div><div class="siru-glass-panel panel-back"></div><div class="siru-glass-panel panel-front"><span></span><div class="siru-front-card"><i data-lucide="folder-kanban"></i><b class="siru-front-status"></b></div><div class="siru-front-card"><i data-lucide="file-check-2"></i><b class="siru-front-status status-blue"></b></div></div><div class="siru-atmosphere-link link-one"></div><div class="siru-atmosphere-link link-two"></div><div class="siru-atmosphere-dot dot-one"></div><div class="siru-atmosphere-dot dot-two"></div></div>
+      <div class="siru-login-visual-copy"><span class="siru-login-eyebrow">SMARTER WORKSPACES</span><h1>One Platform.<br><em>Every Project.</em><br>Better Management.</h1><p>Access your organization’s secure workspace and manage projects, documents, clients, teams and daily operations from one connected platform.</p></div>
+      <div class="siru-workflow-visual" aria-hidden="true"><div class="siru-grid-lines"></div><div class="siru-orbit orbit-one"></div><div class="siru-orbit orbit-two"></div><div class="siru-board-stage"><div class="siru-board"><div class="siru-board-top"><span></span><span></span><span></span><b>WORKSPACE OVERVIEW</b></div><div class="siru-board-content"><div class="siru-board-sidebar"><i></i><i></i><i></i><i></i></div><div class="siru-board-main"><div class="siru-board-line long"></div><div class="siru-board-line short"></div><div class="siru-board-cards"><div class="siru-board-card"><i data-lucide="folder-kanban"></i><span></span><b></b></div><div class="siru-board-card"><i data-lucide="file-lock-2"></i><span></span><b></b></div><div class="siru-board-card"><i data-lucide="users-round"></i><span></span><b></b></div></div><div class="siru-progress"><span></span></div></div></div></div></div><span class="siru-node node-one"></span><span class="siru-node node-two"></span><span class="siru-node node-three"></span></div>
+      <div class="siru-feature-list"><div><span class="siru-feature-icon" aria-hidden="true"><i data-lucide="workflow"></i></span><span class="siru-feature-copy"><strong>Centralized Workflows</strong><small>Keep every process connected.</small></span></div><div><span class="siru-feature-icon" aria-hidden="true"><i data-lucide="file-lock-2"></i></span><span class="siru-feature-copy"><strong>Secure Documents</strong><small>Find important work with confidence.</small></span></div><div><span class="siru-feature-icon" aria-hidden="true"><i data-lucide="users-round"></i></span><span class="siru-feature-copy"><strong>Team Collaboration</strong><small>Bring people and projects together.</small></span></div></div>
+    </section>
+      <section class="siru-login-panel"><div class="siru-login-security-header"><span>WORKSPACE ACCESS</span><span><i data-lucide="shield-check" aria-hidden="true"></i>PROTECTED SIGN-IN</span></div><div class="siru-login-card"><div class="siru-login-kicker">WELCOME TO SIRU</div><h2>Sign in to your workspace.</h2><p class="siru-login-instruction">Use your organization email and password to continue.</p>{% if form.non_field_errors %}<div class="siru-login-error" role="alert">Invalid email or password.</div>{% endif %}<form method="post" novalidate id="siru-login-form">{% csrf_token %}<div class="siru-field"><label for="{{ form.email.id_for_label }}">Work Email</label>{{ form.email }}{% for error in form.email.errors %}<small>{{ error }}</small>{% endfor %}</div><div class="siru-field"><div class="siru-field-label-row"><label for="{{ form.password.id_for_label }}">Password</label><span class="siru-caps-warning" id="siru-caps-warning">Caps Lock is on</span></div><div class="siru-password-wrap">{{ form.password }}<button class="siru-password-toggle" type="button" aria-label="Show password" aria-pressed="false"><i data-lucide="eye" aria-hidden="true"></i></button></div>{% for error in form.password.errors %}<small>{{ error }}</small>{% endfor %}</div><div class="siru-login-options"><label><input type="checkbox" name="remember_me"> Remember me</label><a href="#">Forgot password?</a></div><button class="siru-submit" type="submit"><span class="siru-submit-label">Sign in</span><span class="siru-submit-spinner" aria-hidden="true"></span><i class="siru-submit-arrow" data-lucide="arrow-right" aria-hidden="true"></i></button></form><div class="siru-secure-note"><small>Having trouble signing in? <a href="mailto:support@siru.com">Contact Support</a></small></div></div><footer class="siru-login-footer"><span>© 2026 Siru Platform</span><span><a href="#">Privacy</a><a href="#">Terms</a></span></footer></section>
+  </main>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    (function () {
+      if (window.lucide) { window.lucide.createIcons({ attrs: { width: "20", height: "20", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round" } }); }
+      const visual = document.querySelector(".siru-login-visual");
+      const form = document.getElementById("siru-login-form");
+      const password = document.getElementById("{{ form.password.id_for_label }}");
+      const toggle = document.querySelector(".siru-password-toggle");
+      const capsWarning = document.getElementById("siru-caps-warning");
+      if (visual && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        visual.addEventListener("pointermove", function (event) {
+          const bounds = visual.getBoundingClientRect();
+          const x = ((event.clientX - bounds.left) / bounds.width - 0.5) * 2;
+          const y = ((event.clientY - bounds.top) / bounds.height - 0.5) * 2;
+          visual.style.setProperty("--mouse-x", x.toFixed(3));
+          visual.style.setProperty("--mouse-y", y.toFixed(3));
+        });
+        visual.addEventListener("pointerleave", function () { visual.style.setProperty("--mouse-x", "0"); visual.style.setProperty("--mouse-y", "0"); });
+      }
+      toggle.addEventListener("click", function () { const visible = password.type === "text"; password.type = visible ? "password" : "text"; toggle.innerHTML = '<i data-lucide="' + (visible ? "eye" : "eye-off") + '" aria-hidden="true"></i>'; if (window.lucide) { window.lucide.createIcons(); } toggle.setAttribute("aria-pressed", String(!visible)); toggle.setAttribute("aria-label", visible ? "Show password" : "Hide password"); });
+      password.addEventListener("keydown", function (event) { capsWarning.classList.toggle("is-visible", event.getModifierState && event.getModifierState("CapsLock")); });
+      password.addEventListener("keyup", function (event) { capsWarning.classList.toggle("is-visible", event.getModifierState && event.getModifierState("CapsLock")); });
+      password.addEventListener("blur", function () { capsWarning.classList.remove("is-visible"); });
+      form.addEventListener("submit", function () { const button = form.querySelector(".siru-submit"); button.disabled = true; button.querySelector(".siru-submit-label").textContent = "Signing in..."; button.querySelector(".siru-submit-spinner").classList.add("is-visible"); });
+    }());
+  </script>
+</body>
+</html>

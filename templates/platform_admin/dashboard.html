@@ -1,0 +1,41 @@
+{% extends "platform_admin/base.html" %}
+{% block title %}Overview | Siru Platform{% endblock %}
+{% block content %}
+<section class="platform-hero">
+  <div>
+    <div class="platform-eyebrow">PLATFORM OPERATIONS</div>
+    <h1>Platform overview</h1>
+    <p>Monitor organizations, users, support, billing and administrative activity across Siru.</p>
+  </div>
+  <a class="platform-add-company" href="{% url 'platform-company-create' %}"><i data-lucide="plus"></i>Add organization</a>
+</section>
+
+<section class="platform-stats platform-dashboard-stats" aria-label="Platform metrics">
+  <div><span class="platform-stat-icon blue"><i data-lucide="building-2"></i></span><span><small>Organizations</small><strong>{{ company_count }}</strong><em>Registered on Siru</em></span></div>
+  <div><span class="platform-stat-icon green"><i data-lucide="circle-check"></i></span><span><small>Active organizations</small><strong>{{ active_company_count }}</strong><em>Currently operational</em></span></div>
+  <div><span class="platform-stat-icon orange"><i data-lucide="users-round"></i></span><span><small>Total users</small><strong>{{ user_count }}</strong><em>Across all organizations</em></span></div>
+</section>
+
+<div class="platform-panel" id="organizations">
+  <div class="platform-panel-heading"><div><span class="platform-eyebrow">ORGANIZATION DIRECTORY</span><h2>Organizations</h2><p>Manage organization access, administrators, status and workspace settings.</p></div></div>
+  <div class="table-responsive">
+    <table class="table platform-table align-middle mb-0">
+      <caption class="visually-hidden">Organizations</caption>
+      <thead><tr><th>Organization</th><th>Primary Administrator</th><th>Users</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+      <tbody>
+        {% for company in companies %}
+          <tr>
+            <td><span class="platform-company-mark">{{ company.name|first|upper }}</span><span class="platform-company-name"><strong>{{ company.name }}</strong><small>Organization ID: {{ company.slug|upper|truncatechars:12 }}</small></span></td>
+            <td>{{ company.primary_admin_email|default:company.email|default:company.phone|default:"Not provided" }}</td>
+            <td>{{ company.user_count }}</td>
+            <td>{% if company.is_active %}<span class="platform-status active"><span></span>Active</span>{% else %}<span class="platform-status inactive"><span></span>Inactive</span>{% endif %}</td>
+            <td class="text-end"><a class="platform-manage-link" href="{% url 'platform-company-edit' company.pk %}"><i data-lucide="settings-2"></i>Manage</a><details class="platform-actions"><summary aria-label="More actions for {{ company.name }}"><i data-lucide="ellipsis"></i></summary><div class="platform-actions-menu"><div class="platform-actions-heading"><span>Organization actions</span><small>ID: {{ company.slug|upper|truncatechars:18 }}</small></div><a href="{% url 'platform-company-edit' company.pk %}"><i data-lucide="pencil"></i>Edit organization</a>{% if company.is_active %}<form method="post" action="{% url 'platform-company-toggle' company.pk %}" onsubmit="return confirm('Suspend this organization? Its workspace will no longer be active.');">{% csrf_token %}<button type="submit"><i data-lucide="pause-circle"></i>Suspend organization</button></form>{% else %}<form method="post" action="{% url 'platform-company-toggle' company.pk %}">{% csrf_token %}<button type="submit"><i data-lucide="circle-check"></i>Reactivate organization</button></form>{% endif %}</div></details></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5"><div class="platform-empty-state"><i data-lucide="building-2"></i><strong>No organizations yet</strong><p>Create your first organization workspace to begin managing access.</p><a class="platform-add-company" href="{% url 'platform-company-create' %}"><i data-lucide="plus"></i>Add organization</a></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

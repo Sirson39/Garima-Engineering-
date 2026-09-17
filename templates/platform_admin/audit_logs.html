@@ -1,0 +1,6 @@
+{% extends "platform_admin/base.html" %}
+{% block title %}Audit Logs | Siru Platform{% endblock %}
+{% block content %}
+<section class="platform-page-heading"><div><div class="platform-eyebrow">OPERATIONS</div><h1>Audit Logs</h1><p>Review administrative, security and account activity across the platform.</p></div></section>
+<section class="platform-panel"><div class="table-responsive"><table class="table platform-table align-middle mb-0"><caption class="visually-hidden">Read-only audit logs</caption><thead><tr><th>Date and time</th><th>Actor</th><th>Action</th><th>Target</th><th>Details</th></tr></thead><tbody>{% for entry in audit_logs %}<tr><td>{{ entry.created_at|date:"M j, Y H:i" }}</td><td>{{ entry.actor.email|default:entry.actor.username|default:"System" }}</td><td>{{ entry.action }}</td><td>{{ entry.object_type|default:"Platform" }}</td><td>{{ entry.summary|default:"No additional details" }}</td></tr>{% empty %}<tr><td colspan="5"><div class="platform-empty-state"><i data-lucide="scroll-text"></i><strong>No audit activity yet</strong><p>Administrative events will appear here as the platform is used.</p></div></td></tr>{% endfor %}</tbody></table></div></section>
+{% endblock %}

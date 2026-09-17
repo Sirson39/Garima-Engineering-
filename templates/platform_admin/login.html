@@ -1,0 +1,33 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Platform Login | Siru Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="platform-login-body">
+  <main class="platform-login-layout">
+    <section class="platform-login-story">
+      <div class="platform-login-brand"><span class="platform-brand-mark">S</span><span><strong>Siru Platform</strong><small>IT company control center</small></span></div>
+      <div class="platform-login-message"><span class="platform-eyebrow">PRIVATE ADMINISTRATION</span><h1>One platform.<br><em>Every organization.</em></h1><p>Manage engineering consultancy workspaces securely from one neutral control center.</p></div>
+      <div class="platform-login-network"><span>IT Company Platform</span><i></i><span>Engineering Organizations</span><small>Garima &nbsp;·&nbsp; Company B &nbsp;·&nbsp; Company C</small></div>
+    </section>
+    <section class="platform-login-card">
+      <div class="platform-login-card-kicker">SUPER ADMIN ACCESS</div>
+      <h2>Welcome back</h2><p>Sign in to manage your platform.</p>
+      {% if form.non_field_errors %}<div class="platform-login-error">{% for error in form.non_field_errors %}{{ error }}{% endfor %}</div>{% endif %}
+      <form method="post" novalidate>{% csrf_token %}
+        <div class="platform-login-field"><label for="id_username">Username</label><input id="id_username" name="username" type="text" autocomplete="username" placeholder="Enter your username" required value="{{ form.username.value|default:'' }}">{% for error in form.username.errors %}<small>{{ error }}</small>{% endfor %}</div>
+        <div class="platform-login-field"><label for="id_password">Password</label><input id="id_password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required>{% for error in form.password.errors %}<small>{{ error }}</small>{% endfor %}</div>
+        <button class="platform-login-submit" type="submit">Continue to platform <span>→</span></button>
+      </form>
+      <div class="platform-login-protection"><span>✓</span><div><strong>Protected administration area</strong><small>Organization members use their organization login.</small></div></div>
+    </section>
+  </main>
+</body>
+</html>

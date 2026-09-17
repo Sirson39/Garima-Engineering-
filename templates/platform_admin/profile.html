@@ -1,0 +1,41 @@
+{% extends "platform_admin/base.html" %}
+{% block title %}Profile Settings | Siru Platform{% endblock %}
+{% block content %}
+<section class="platform-page-heading">
+  <div>
+    <div class="platform-eyebrow">ACCOUNT</div>
+    <h1>Profile settings</h1>
+    <p>Manage the personal details used by your Siru Platform account.</p>
+  </div>
+</section>
+<section class="platform-profile-layout">
+  <div class="platform-panel platform-profile-card">
+    <div class="platform-panel-heading">
+      <div>
+        <div class="platform-eyebrow">SUPER ADMIN PROFILE</div>
+        <h2>Account details</h2>
+        <p>These details identify you in the platform administration area.</p>
+      </div>
+    </div>
+    <form method="post" class="platform-profile-form">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      <div class="platform-profile-avatar">{{ user.username|first|upper }}</div>
+      <div class="row g-3">
+        {% for field in form %}
+          <div class="col-md-6">
+            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+      <div class="platform-profile-note"><i data-lucide="shield-check"></i><span>Your email is used for platform access. Password changes remain managed through the secure sign-in flow.</span></div>
+      <div class="d-flex gap-2 mt-4">
+        <button class="platform-add-company" type="submit"><i data-lucide="save"></i>Save changes</button>
+        <a class="btn btn-light-brand" href="{% url 'platform-dashboard' %}">Cancel</a>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

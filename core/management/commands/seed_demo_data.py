@@ -281,7 +281,7 @@ class Command(BaseCommand):
         assign_permissions(groups["Read-only/Auditor"], view_perms)
 
         users = {
-            "admin": ensure_user("admin", "Admin", "User", "admin@gec.local", groups["System Administrator"], DEFAULT_PASSWORD, True, True),
+            "admin": ensure_user("admin", "Admin", "User", "adminsiru@gmail.com", groups["System Administrator"], DEFAULT_PASSWORD, True, True),
             "manager": ensure_user("manager", "Mina", "Shrestha", "manager@gec.local", groups["Director/Management"], DEFAULT_PASSWORD),
             "reception": ensure_user("reception", "Rita", "Khadka", "reception@gec.local", groups["Reception/Document Officer"], DEFAULT_PASSWORD),
             "pm": ensure_user("pm", "Prakash", "Koirala", "pm@gec.local", groups["Project Manager"], DEFAULT_PASSWORD),

@@ -1,0 +1,62 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Siru Platform | Platform Administration{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="platform-body">
+  <div class="platform-shell">
+    <div class="platform-sidebar-overlay" data-platform-close></div>
+    <aside class="platform-sidebar" id="platform-sidebar" aria-label="Platform sidebar">
+      <a class="platform-brand" href="{% url 'platform-dashboard' %}">
+        <span class="platform-brand-mark">S</span>
+        <span><strong>Siru Platform</strong><small>Platform Administration</small></span>
+      </a>
+      <div class="platform-sidebar-label">Platform</div>
+      <nav class="platform-nav" aria-label="Platform navigation">
+        <a data-platform-overview-link class="{% if request.resolver_match.url_name == 'platform-dashboard' %}is-active{% endif %}" href="{% url 'platform-dashboard' %}"{% if request.resolver_match.url_name == 'platform-dashboard' %} aria-current="page"{% endif %}><span><i data-lucide="layout-dashboard"></i></span>Overview</a>
+        <a data-platform-organizations-link href="{% url 'platform-dashboard' %}#organizations"><span><i data-lucide="building-2"></i></span>Organizations</a>
+      </nav>
+      <div class="platform-sidebar-label platform-sidebar-label-spaced">Operations</div>
+      <nav class="platform-nav" aria-label="Platform operations">
+        <a class="{% if request.resolver_match.url_name == 'platform-support' %}is-active{% endif %}" href="{% url 'platform-support' %}"{% if request.resolver_match.url_name == 'platform-support' %} aria-current="page"{% endif %}><span><i data-lucide="messages-square"></i></span>Support Inbox</a>
+        <a class="{% if request.resolver_match.url_name == 'platform-billing' %}is-active{% endif %}" href="{% url 'platform-billing' %}"{% if request.resolver_match.url_name == 'platform-billing' %} aria-current="page"{% endif %}><span><i data-lucide="credit-card"></i></span>Billing &amp; Plans</a>
+        <a class="{% if request.resolver_match.url_name == 'platform-audit-logs' %}is-active{% endif %}" href="{% url 'platform-audit-logs' %}"{% if request.resolver_match.url_name == 'platform-audit-logs' %} aria-current="page"{% endif %}><span><i data-lucide="scroll-text"></i></span>Audit Logs</a>
+      </nav>
+      <div class="platform-sidebar-label platform-sidebar-label-spaced">Configuration</div>
+      <nav class="platform-nav" aria-label="Platform system navigation">
+        <a class="{% if request.resolver_match.url_name == 'platform-settings' %}is-active{% endif %}" href="{% url 'platform-settings' %}"{% if request.resolver_match.url_name == 'platform-settings' %} aria-current="page"{% endif %}><span><i data-lucide="settings"></i></span>Platform Settings</a>
+      </nav>
+    </aside>
+    <main class="platform-main">
+      <header class="platform-topbar">
+        <div class="platform-current-page"><button class="platform-menu-button" type="button" aria-label="Open platform menu" aria-controls="platform-sidebar" aria-expanded="false" data-platform-menu><i data-lucide="menu"></i></button>
+          {% if request.resolver_match.url_name == 'platform-dashboard' %}<i class="platform-current-icon" data-lucide="layout-dashboard"></i><span data-platform-page-title>Overview</span>
+          {% elif request.resolver_match.url_name == 'platform-support' %}<i class="platform-current-icon" data-lucide="messages-square"></i><span data-platform-page-title>Support Inbox</span>
+          {% elif request.resolver_match.url_name == 'platform-billing' %}<i class="platform-current-icon" data-lucide="credit-card"></i><span data-platform-page-title>Billing &amp; Plans</span>
+          {% elif request.resolver_match.url_name == 'platform-audit-logs' %}<i class="platform-current-icon" data-lucide="scroll-text"></i><span data-platform-page-title>Audit Logs</span>
+          {% elif request.resolver_match.url_name == 'platform-settings' %}<i class="platform-current-icon" data-lucide="settings"></i><span data-platform-page-title>Platform Settings</span>
+          {% elif request.resolver_match.url_name == 'platform-profile' %}<i class="platform-current-icon" data-lucide="user-round"></i><span data-platform-page-title>Profile settings</span>
+          {% elif request.resolver_match.url_name == 'platform-company-edit' %}<a class="platform-parent-crumb" href="{% url 'platform-dashboard' %}#organizations">Organizations</a><span class="platform-topbar-divider">/</span><span data-platform-page-title>{{ object.name }}</span>
+          {% else %}<i class="platform-current-icon" data-lucide="building-2"></i><span data-platform-page-title>Add organization</span>{% endif %}
+        </div>
+        <div class="platform-topbar-actions"><a class="platform-icon-button platform-support-shortcut" href="{% url 'platform-support' %}" aria-label="Open Support Inbox" title="Support Inbox"><i data-lucide="messages-square"></i></a>
+          <details class="platform-user-menu"><summary class="platform-user" aria-label="Admin user menu"><span class="platform-user-dot">{{ user.username|first|upper }}</span><span class="platform-user-copy"><strong>{% if user.get_full_name %}{{ user.get_full_name }}{% else %}Platform Administrator{% endif %}</strong><small>Platform Owner</small></span><i class="platform-user-chevron" data-lucide="chevron-down"></i></summary><div class="platform-user-dropdown"><span class="platform-user-dropdown-label">Signed in as {{ user.email|default:user.username }}</span><a href="{% url 'platform-profile' %}"><i data-lucide="user-round"></i>Profile settings</a><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit"><i data-lucide="log-out"></i>Sign out</button></form></div></details>
+        </div>
+      </header>
+      {% if messages %}<div class="platform-messages">{% for message in messages %}<div class="alert alert-{{ message.tags }} mb-2" role="alert">{{ message }}</div>{% endfor %}</div>{% endif %}
+      <div class="platform-content">{% block content %}{% endblock %}</div>
+    </main>
+  </div>
+  <script>if (window.lucide) { window.lucide.createIcons({ attrs: { width: "18", height: "18", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round" } }); }(function () { const body = document.body; const menu = document.querySelector("[data-platform-menu]"); const close = document.querySelector("[data-platform-close]"); const sidebar = document.getElementById("platform-sidebar"); const orgLink = document.querySelector("[data-platform-organizations-link]"); const overviewLink = document.querySelector("[data-platform-overview-link]"); const pageTitle = document.querySelector("[data-platform-page-title]"); const userMenu = document.querySelector(".platform-user-menu"); const userTrigger = userMenu && userMenu.querySelector("summary"); const positionActionMenu = function (actions) { const summary = actions.querySelector("summary"); const actionMenu = actions.querySelector(".platform-actions-menu"); if (!summary || !actionMenu) return; actionMenu.style.position = "fixed"; actionMenu.style.top = "0px"; actionMenu.style.bottom = "auto"; actionMenu.style.left = "0px"; const anchor = summary.getBoundingClientRect(); const menuBox = actionMenu.getBoundingClientRect(); const gap = 6; const spaceAbove = anchor.top - gap; const top = spaceAbove >= menuBox.height + 8 ? anchor.top - menuBox.height - gap : Math.min(anchor.bottom + gap, window.innerHeight - menuBox.height - 8); const left = Math.min(Math.max(8, anchor.right - menuBox.width), window.innerWidth - menuBox.width - 8); actionMenu.style.top = Math.max(8, top) + "px"; actionMenu.style.left = Math.max(8, left) + "px"; }; document.querySelectorAll(".platform-actions").forEach(function (actions) { actions.addEventListener("toggle", function () { if (actions.open) { positionActionMenu(actions); } else { const actionMenu = actions.querySelector(".platform-actions-menu"); if (actionMenu) { actionMenu.style.position = ""; actionMenu.style.top = ""; actionMenu.style.bottom = ""; actionMenu.style.left = ""; } } }); }); window.addEventListener("resize", function () { document.querySelectorAll(".platform-actions[open]").forEach(positionActionMenu); }); const markActive = function () { if (!orgLink || !overviewLink || !window.location.pathname.endsWith("/platform/admin/")) return; const organizationsActive = window.location.hash === "#organizations"; orgLink.classList.toggle("is-active", organizationsActive); overviewLink.classList.toggle("is-active", !organizationsActive); if (organizationsActive) { orgLink.setAttribute("aria-current", "page"); overviewLink.removeAttribute("aria-current"); if (pageTitle) pageTitle.textContent = "Organizations"; } else { overviewLink.setAttribute("aria-current", "page"); orgLink.removeAttribute("aria-current"); if (pageTitle) pageTitle.textContent = "Overview"; } }; markActive(); window.addEventListener("hashchange", markActive); if (userMenu) { document.addEventListener("click", function (event) { if (userMenu.open && !userMenu.contains(event.target)) userMenu.open = false; }); document.addEventListener("keydown", function (event) { if (event.key === "Escape" && userMenu.open) { userMenu.open = false; userTrigger.focus(); } }); } if (!menu || !sidebar) return; const setOpen = function (open) { sidebar.classList.toggle("is-open", open); body.classList.toggle("platform-menu-open", open); menu.setAttribute("aria-expanded", String(open)); }; menu.addEventListener("click", function () { setOpen(!sidebar.classList.contains("is-open")); }); if (close) close.addEventListener("click", function () { setOpen(false); }); sidebar.querySelectorAll("a").forEach(function (link) { link.addEventListener("click", function () { setOpen(false); }); }); document.addEventListener("keydown", function (event) { if (event.key === "Escape") setOpen(false); }); }());</script>
+  <script>(function () { document.addEventListener("click", function (event) { document.querySelectorAll(".platform-actions[open]").forEach(function (actions) { if (actions.contains(event.target)) return; actions.removeAttribute("open"); const actionMenu = actions.querySelector(".platform-actions-menu"); if (actionMenu) { actionMenu.style.position = ""; actionMenu.style.top = ""; actionMenu.style.right = ""; actionMenu.style.bottom = ""; actionMenu.style.left = ""; } }); }); }());</script>
+</body>
+</html>

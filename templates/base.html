@@ -55,6 +55,12 @@
             <a class="nav-link {% if request.resolver_match.url_name == 'system-settings' %}active{% endif %}" href="{% url 'system-settings' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-2.6v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1A1.7 1.7 0 0 0 8 15a1.7 1.7 0 0 0-1.5-1H6v-2.6h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5v-.2h2.6v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.2V14h-.2a1.7 1.7 0 0 0-1.5 1z"/></svg></span>System Settings</a>
             <a class="nav-link {% if request.resolver_match.url_name == 'workflow-catalog' %}active{% endif %}" href="{% url 'workflow-catalog' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v14H5zM8 9h8M8 13h8M8 17h5"/></svg></span>Workflow Catalog</a>
           </details>
+          {% if user.is_authenticated and user.is_platform_admin or user.is_superuser %}
+            <div class="nav-group">
+              <div class="nav-group-label">Platform</div>
+              <a class="nav-link {% if request.resolver_match.url_name == 'platform-dashboard' %}active{% endif %}" href="{% url 'platform-dashboard' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM8 9h3M8 13h8M15 9h2"/></svg></span>Platform Administration</a>
+            </div>
+          {% endif %}
         </nav>
       </div>
     </aside>

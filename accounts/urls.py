@@ -1,12 +1,16 @@
 from django.contrib.auth.views import LogoutView
 from django.urls import path
 
-from accounts.views import GarimaLoginView, UsersAndRolesView, logout_view
+from accounts.views import AccessDeniedView, FirstLoginPasswordChangeView, GarimaLoginView, OrganizationSelectionView, OrganizationUserCreateView, UnifiedLoginView, UsersAndRolesView, logout_view
 
 
 urlpatterns = [
-    path("login/", GarimaLoginView.as_view(), name="login"),
+    path("login/", UnifiedLoginView.as_view(), name="login"),
+    path("garima-login/", GarimaLoginView.as_view(), name="garima-login"),
+    path("choose-organization/", OrganizationSelectionView.as_view(), name="organization-select"),
+    path("access-denied/", AccessDeniedView.as_view(), name="access-denied"),
+    path("password-change/", FirstLoginPasswordChangeView.as_view(), name="password-change"),
     path("logout/", logout_view, name="logout"),
     path("users/", UsersAndRolesView.as_view(), name="users-roles"),
+    path("users/new/", OrganizationUserCreateView.as_view(), name="organization-user-create"),
 ]
-

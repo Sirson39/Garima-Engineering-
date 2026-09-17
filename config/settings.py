@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "core",
     "workflows",
     "projects",
+    "platform_admin",
 ]
 
 MIDDLEWARE = [
