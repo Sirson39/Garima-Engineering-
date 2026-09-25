@@ -1,0 +1,1 @@
+<div class="retail-line">{% for field in line %}<div><label for="{{ field.id_for_label }}">{% if field.name == 'DELETE' %}Remove{% else %}{{ field.label }}{% endif %}</label><div>{{ field }}</div>{{ field.errors }}</div>{% endfor %}{{ line.non_field_errors }}</div>

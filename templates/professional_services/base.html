@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }} | {{ ps_organization.name }}{% endblock %}
+{% block sidebar_brand %}
+<div class="brand-mark text-primary" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="18" height="14" rx="3"/><path d="M8 7V4h8v3M3 12c5 4 13 4 18 0M12 12v4"/></svg></div>
+<div><div class="brand-name">{{ ps_organization.name }}</div><div class="brand-subtitle">Professional services</div></div>
+{% endblock %}
+{% block workspace_navigation %}
+<div class="nav-group"><div class="nav-group-label">Workspace</div>
+{% for item in ps_navigation %}<a class="nav-link {% if request.path == item.url or item.url_name != 'ps-dashboard' and item.url in request.path %}active{% endif %}" href="{{ item.url }}"><span class="nav-icon" aria-hidden="true">{% if item.label == 'Dashboard' %}◫{% elif item.label == 'Engagements' %}▣{% elif item.label == 'Clients' %}◎{% elif item.label == 'Services' %}◇{% else %}▤{% endif %}</span>{{ item.label }}</a>{% endfor %}
+</div>
+<div class="nav-group"><a class="nav-link" href="{% url 'organization-select' %}">Switch organization</a></div>
+{% endblock %}
+{% block workspace_subtitle %}{{ ps_organization.name }} · Professional Service Management{% endblock %}

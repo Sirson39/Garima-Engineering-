@@ -1,6 +1,125 @@
 {% extends "platform_admin/base.html" %}
-{% block title %}{{ view.object|default:"Add organization" }} | Siru Platform{% endblock %}
+{% block title %}{% if view.object %}Edit organization{% else %}Create organization{% endif %} | Siru Platform{% endblock %}
 {% block content %}
-<section class="platform-page-heading"><div><div class="platform-eyebrow">PLATFORM ADMINISTRATION</div><h1>{% if view.object %}Edit organization{% else %}Add organization{% endif %}</h1><p>Set up an independent organization workspace and its first administrator account.</p></div><a class="platform-back-link" href="{% url 'platform-dashboard' %}"><i data-lucide="arrow-left"></i>Back to organizations</a></section>
-<section class="platform-company-form-panel platform-panel"><form class="platform-company-form" method="post" enctype="multipart/form-data">{% csrf_token %}{{ form.non_field_errors }}<div class="row g-3">{% for field in form %}<div class="{% if field.name == 'address' %}col-12{% else %}col-md-6{% endif %}">{% if field.name == 'is_active' %}<div class="platform-checkbox-field"><label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}</div>{% else %}<label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% endif %}{% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}</div>{% endfor %}</div><div class="d-flex gap-2 mt-4"><button class="platform-add-company" type="submit">Save organization</button><a class="btn btn-light-brand" href="{% url 'platform-dashboard' %}">Cancel</a></div></form></section>
+<section class="platform-page-heading"><div><div class="platform-eyebrow">PLATFORM ADMINISTRATION</div><h1>{% if view.object %}Edit organization{% else %}Create organization{% endif %}</h1><p>{% if view.object %}Update workspace details without changing its operational data.{% else %}Provision a secure, modular workspace for a new organization.{% endif %}</p></div><a class="platform-back-link" href="{% url 'platform-dashboard' %}#organizations"><i data-lucide="arrow-left"></i>Back to organizations</a></section>
+<section class="platform-wizard-panel platform-panel">
+  <div class="platform-wizard-steps" aria-label="Organization setup steps">
+    <span class="is-active" data-wizard-step-label="1"><span class="platform-step-number">1</span><b>Details</b></span><span data-wizard-step-label="2"><span class="platform-step-number">2</span><b>Contact</b></span><span data-wizard-step-label="3"><span class="platform-step-number">3</span><b>Template</b></span><span data-wizard-step-label="4"><span class="platform-step-number">4</span><b>Modules</b></span><span data-wizard-step-label="5"><span class="platform-step-number">5</span><b>Administrator</b></span><span data-wizard-step-label="6"><span class="platform-step-number">6</span><b>Review</b></span>
+  </div>
+  <form class="platform-company-form platform-wizard-form" method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="platform-form-alert">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="platform-wizard-page is-active" data-wizard-page="1">
+      <div class="platform-wizard-heading"><span class="platform-eyebrow">STEP 1 OF 6</span><h2>Organization details</h2><p>Identify the workspace and choose the organization category.</p></div>
+      <div class="row g-3">
+        {% include "platform_admin/_wizard_field.html" with field=form.name span="6" %}{% include "platform_admin/_wizard_field.html" with field=form.legal_name span="6" %}
+        {% include "platform_admin/_wizard_field.html" with field=form.organization_code span="6" %}{% include "platform_admin/_wizard_field.html" with field=form.slug span="6" %}
+        {% include "platform_admin/_wizard_field.html" with field=form.category span="6" %}{% include "platform_admin/_wizard_field.html" with field=form.industry span="6" %}
+        {% include "platform_admin/_wizard_field.html" with field=form.description span="12" %}{% include "platform_admin/_wizard_field.html" with field=form.registration_number span="6" %}{% include "platform_admin/_wizard_field.html" with field=form.tax_identifier span="6" %}
+        {% include "platform_admin/_wizard_field.html" with field=form.is_active span="6" %}
+      </div>
+    </div>
+    <div class="platform-wizard-page" data-wizard-page="2">
+      <div class="platform-wizard-heading"><span class="platform-eyebrow">STEP 2 OF 6</span><h2>Contact details</h2><p>Set the official contact information for this organization.</p></div>
+      <div class="row g-3">
+        {% include "platform_admin/_wizard_field.html" with field=form.email span="6" %}{% include "platform_admin/_wizard_field.html" with field=form.phone span="6" %}{% include "platform_admin/_wizard_field.html" with field=form.website span="6" %}{% include "platform_admin/_wizard_field.html" with field=form.address span="12" %}
+      </div>
+    </div>
+    <div class="platform-wizard-page" data-wizard-page="3">
+      <div class="platform-wizard-heading"><span class="platform-eyebrow">STEP 3 OF 6</span><h2>System template</h2><p>The template defines the workspace dashboard, roles, navigation and workflows.</p></div>
+      <div class="platform-template-grid">{% for template in form.fields.system_template.queryset %}<label class="platform-template-card {% if not template.template_modules.exists %}is-disabled{% endif %}"><input type="radio" name="template_card" value="{{ template.pk }}" {% if form.system_template.value|stringformat:'s' == template.pk|stringformat:'s' %}checked{% endif %} {% if not template.template_modules.exists %}disabled{% endif %}><span class="platform-template-card-icon"><i data-lucide="{% if template.category.code == 'engineering' %}landmark{% elif template.category.code == 'education' %}graduation-cap{% elif template.category.code == 'healthcare' %}heart-pulse{% elif template.category.code == 'construction' %}hard-hat{% else %}briefcase-business{% endif %}"></i></span><strong>{{ template.name }}</strong><small>{{ template.description|default:"A configurable organization workspace template." }}</small><em>{% if template.template_modules.exists %}{% if template.code == 'custom-organization' %}Controlled workspace builder{% else %}{{ template.template_modules.count }} modules available{% endif %}{% else %}Coming after module implementation{% endif %}</em></label>{% endfor %}</div>
+      <div class="platform-custom-structure" data-custom-structure hidden>{% include "platform_admin/_wizard_field.html" with field=form.custom_starting_structure span="12" %}<p class="platform-form-help">Choose a starting blueprint. You can change the selected modules before provisioning; this does not create a separate application.</p></div>
+      {% include "platform_admin/_wizard_field.html" with field=form.system_template span="12" hidden=True %}
+    </div>
+    <div class="platform-wizard-page" data-wizard-page="4">
+      <div class="platform-wizard-heading"><span class="platform-eyebrow">STEP 4 OF 6</span><h2>Modules</h2><p>Choose the capabilities this organization will use. Recommended modules are preselected by the template.</p></div>
+      <div class="platform-module-selection">{{ form.modules }}{% for error in form.modules.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}</div>
+    </div>
+    <div class="platform-wizard-page" data-wizard-page="5">
+      <div class="platform-wizard-heading"><span class="platform-eyebrow">STEP 5 OF 6</span><h2>Primary administrator</h2><p>Set the administrator login details. They must replace the temporary password after first login.</p></div>
+      <div class="row g-3"><div class="col-12"><div class="platform-wizard-subheading">Administrator account</div></div>{% include "platform_admin/_wizard_field.html" with field=form.admin_full_name span="6" %}{% include "platform_admin/_wizard_field.html" with field=form.admin_email span="6" %}{% include "platform_admin/_wizard_field.html" with field=form.admin_phone span="6" %}{% include "platform_admin/_wizard_field.html" with field=form.admin_job_title span="6" %}{% include "platform_admin/_wizard_field.html" with field=form.admin_temporary_password span="6" %}</div>
+    </div>
+    <div class="platform-wizard-page" data-wizard-page="6">
+      <div class="platform-wizard-heading"><span class="platform-eyebrow">STEP 6 OF 6</span><h2>Review and create</h2><p>Check the workspace configuration before provisioning it.</p></div>
+      <div class="platform-review-grid"><div><small>Organization</small><strong data-review="name" data-review-value>Not set</strong><span data-review="details">Review the details step.</span></div><div><small>Template</small><strong data-review="template" data-review-value>Not selected</strong><span>Dashboard and workflow blueprint</span></div><div><small>Modules</small><strong data-review="modules" data-review-value>0 selected</strong><span>Enabled workspace capabilities</span></div><div><small>Administrator</small><strong data-review="admin" data-review-value>Not set</strong><span>Temporary password required at first login</span></div></div>
+      <label class="platform-review-confirm"><input type="checkbox" required> I confirm these details and want to provision this organization.</label>
+    </div>
+    <div class="platform-wizard-actions"><a class="btn btn-light-brand" href="{% url 'platform-dashboard' %}#organizations">Cancel</a><button class="btn btn-light-brand" type="button" data-wizard-back hidden>Back</button><button class="platform-add-company" type="button" data-wizard-next>Continue</button><button class="platform-add-company" type="submit" data-wizard-submit hidden>{% if view.object %}Save organization{% else %}Create organization{% endif %}</button></div>
+  </form>
+</section>
+{{ module_catalog_json|json_script:"module-catalog" }}
+{{ template_category_json|json_script:"template-categories" }}
+{{ custom_structure_defaults_json|json_script:"custom-structure-defaults" }}
 {% endblock %}
+{% block page_scripts %}<script>
+(function(){
+  const pages=[...document.querySelectorAll('[data-wizard-page]')], labels=[...document.querySelectorAll('[data-wizard-step-label]')];
+  const next=document.querySelector('[data-wizard-next]'), back=document.querySelector('[data-wizard-back]'), submit=document.querySelector('[data-wizard-submit]'), form=document.querySelector('.platform-wizard-form');
+  if(!pages.length||!next||!form)return;
+  let step=1;
+  const valueFor=name=>form.querySelector('[name="'+name+'"]');
+  const moduleCatalog=JSON.parse(document.getElementById('module-catalog')?.textContent||'{}');
+  const templateCategories=JSON.parse(document.getElementById('template-categories')?.textContent||'{}');
+  const structureDefaults=JSON.parse(document.getElementById('custom-structure-defaults')?.textContent||'{}');
+  const renderModules=(templateId, selectedCodes)=>{
+    const wrapper=form.querySelector('#id_modules');
+    if(!wrapper)return;
+    wrapper.innerHTML='';
+    (moduleCatalog[String(templateId)]||[]).forEach(module=>{
+      const row=document.createElement('div');
+      const label=document.createElement('label');
+      const input=document.createElement('input');
+      input.type='checkbox'; input.name='modules'; input.value=module.code;
+      input.checked=module.required||selectedCodes.includes(module.code);
+      input.disabled=module.required;
+      label.append(input,document.createTextNode(' '+module.name+(module.required?' (required)':'')));
+      row.append(label); wrapper.append(row);
+      if(module.required){
+        const requiredInput=document.createElement('input');
+        requiredInput.type='hidden'; requiredInput.name='modules'; requiredInput.value=module.code;
+        row.append(requiredInput);
+      }
+    });
+  };
+  const setReview=(name,value,missing=false)=>{const target=document.querySelector('[data-review="'+name+'"]');if(!target)return;target.textContent=value;target.classList.toggle('is-missing',missing);target.closest('.platform-review-grid > div')?.classList.toggle('has-warning',missing);};
+  const updateModuleCount=()=>{const count=form.querySelectorAll('[name="modules"]:checked').length;document.querySelector('[data-review="modules"]').textContent=count+' selected';};
+  const sync=()=>{
+    pages.forEach((page,index)=>page.classList.toggle('is-active',index===step-1));
+    labels.forEach((label,index)=>{label.classList.toggle('is-active',index===step-1);label.classList.toggle('is-complete',index<step-1);label.classList.toggle('is-upcoming',index>step-1);});
+    back.hidden=step===1; next.hidden=step===6; submit.hidden=step!==6;
+    const customStructure=document.querySelector('[data-custom-structure]');
+    const isCustom=(valueFor('system_template')?.selectedOptions?.[0]?.text||'').toLowerCase().includes('custom organization');
+    if(customStructure)customStructure.hidden=!isCustom;
+    if(step===6){
+      const name=valueFor('name')?.value.trim(), code=valueFor('organization_code')?.value.trim(), industry=valueFor('industry')?.value.trim(), template=valueFor('system_template')?.selectedOptions?.[0]?.text, adminName=valueFor('admin_full_name')?.value.trim(), adminEmail=valueFor('admin_email')?.value.trim(), password=valueFor('admin_temporary_password')?.value;
+      setReview('name',name||'Not set',!name); document.querySelector('[data-review="details"]').textContent=(code||'Code not set')+' / '+(industry||'Industry not set');
+      setReview('template',template||'Not selected',!template); setReview('admin',adminName||adminEmail||'Not set',!adminName&&!adminEmail); updateModuleCount();
+      submit.disabled=!name||!adminName||!adminEmail||!password||password.length<8||!template||!form.querySelector('[name="modules"]:checked')||!form.querySelector('.platform-review-confirm input').checked;
+    }
+  };
+  next.addEventListener('click',()=>{if(step<6){step++;sync();window.scrollTo({top:0,behavior:'smooth'});}});
+  back.addEventListener('click',()=>{if(step>1){step--;sync();}});
+  form.addEventListener('input',sync);
+  form.addEventListener('change',event=>{
+    if(event.target.name==='template_card'){
+      const hidden=form.querySelector('select[name="system_template"]');
+      if(hidden){hidden.value=event.target.value;}
+      const category=valueFor('category');
+      if(category&&templateCategories[event.target.value])category.value=templateCategories[event.target.value];
+      const selected=event.target.closest('.platform-template-card')?.querySelector('strong')?.textContent?.toLowerCase().includes('custom')
+        ? [...(moduleCatalog[event.target.value]||[]).filter(module=>module.required).map(module=>module.code), ...(structureDefaults[valueFor('custom_starting_structure')?.value]||[])]
+        : (moduleCatalog[event.target.value]||[]).filter(module=>module.default).map(module=>module.code);
+      renderModules(event.target.value,[...new Set(selected)]);
+    }
+    if(event.target.name==='custom_starting_structure'){
+      const template=valueFor('system_template')?.value;
+      const selected=[...(moduleCatalog[template]||[]).filter(module=>module.required).map(module=>module.code), ...(structureDefaults[event.target.value]||[])];
+      renderModules(template,[...new Set(selected)]);
+    }
+    updateModuleCount();sync();
+  });
+  const initialTemplate=valueFor('system_template')?.value;
+  if(initialTemplate&&moduleCatalog[initialTemplate])renderModules(initialTemplate,[...form.querySelectorAll('[name="modules"]:checked')].map(input=>input.value));
+  updateModuleCount(); sync();
+}());
+</script>{% endblock %}

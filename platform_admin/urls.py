@@ -1,6 +1,6 @@
 from django.urls import path
 
-from platform_admin.views import AuditLogsView, BillingPlansView, CompanyCreateView, CompanyUpdateView, PlatformDashboardView, PlatformLandingView, PlatformLoginView, PlatformProfileView, PlatformSettingsView, SupportInboxView, toggle_company
+from platform_admin.views import AuditLogsView, BillingPlansView, CompanyCreateView, CompanyUpdateView, PlatformDashboardView, PlatformLandingView, PlatformLoginView, PlatformProfileView, PlatformSettingsView, SupportInboxView, remove_company, toggle_company
 
 
 urlpatterns = [
@@ -15,4 +15,5 @@ urlpatterns = [
     path("companies/new/", CompanyCreateView.as_view(), name="platform-company-create"),
     path("companies/<int:pk>/edit/", CompanyUpdateView.as_view(), name="platform-company-edit"),
     path("companies/<int:pk>/toggle/", toggle_company, name="platform-company-toggle"),
+    path("companies/<int:pk>/remove/", remove_company, name="platform-company-remove"),
 ]

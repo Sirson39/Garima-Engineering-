@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Hospital dashboard | {{ hospital_organization.name }}{% endblock %}
+{% block content %}
+<section class="dashboard-heading"><div><div class="eyebrow">HOSPITAL MANAGEMENT</div><h1 class="dashboard-title">{{ hospital_organization.name }}</h1><p class="dashboard-subtitle">Simple hospital operations workspace for facilities, staff, patients, appointments and queue management.</p></div></section>
+<section class="surface dashboard-panel mb-4"><div class="panel-heading"><div><h2>Operations foundation</h2><p>This version focuses on safe operational management. Clinical notes, prescriptions and laboratory workflows are not enabled.</p></div><span class="badge badge-soft">{{ hospital_modules|length }} enabled modules</span></div><div class="row g-3">{% for installation in hospital_modules %}<div class="col-12 col-md-6 col-xl-4"><div class="border rounded p-3 h-100"><strong>{{ installation.module.name }}</strong><p class="mb-0 text-muted small">Available in this hospital workspace.</p></div></div>{% empty %}<div class="col-12"><div class="empty-state">No hospital modules are enabled.</div></div>{% endfor %}</div></section>
+<section class="surface p-4"><div class="eyebrow">SAFETY BOUNDARY</div><h2 class="h4 mt-2">Operational first</h2><p class="mb-0 text-muted">Patient access, consent, appointment and queue features will require organization-scoped permissions and audit history. Advanced clinical functionality will be added only after appropriate review.</p></section>
+{% endblock %}

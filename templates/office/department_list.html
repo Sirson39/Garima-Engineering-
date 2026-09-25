@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Departments | {{ organization.company_name }}{% endblock %}
+{% block content %}
+<section class="dashboard-heading d-flex justify-content-between align-items-start gap-3"><div><div class="eyebrow">ORGANIZATION STRUCTURE</div><h1 class="dashboard-title">Departments</h1><p class="dashboard-subtitle">Maintain the organization hierarchy and department ownership.</p></div><a class="btn btn-primary" href="{% url 'office-department-create' %}">New department</a></section>
+<section class="surface dashboard-panel"><div class="table-responsive"><table class="table dashboard-table mb-0"><thead><tr><th>Name</th><th>Code</th><th>Parent</th><th>Department head</th><th>Status</th></tr></thead><tbody>{% for department in departments %}<tr><td>{{ department.name }}<small>{{ department.description|default:"" }}</small></td><td>{{ department.code }}</td><td>{{ department.parent.name|default:"Top level" }}</td><td>{{ department.department_head.display_name|default:"Not assigned" }}</td><td>{% if department.is_active %}Active{% else %}Inactive{% endif %}</td></tr>{% empty %}<tr><td colspan="5" class="empty-state">No departments have been created yet.</td></tr>{% endfor %}</tbody></table></div></section>
+{% endblock %}

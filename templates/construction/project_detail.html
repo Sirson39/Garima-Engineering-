@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}{{ project.name }} | Construction{% endblock %}
+{% block content %}
+<section class="construction-heading"><div><div class="eyebrow">{{ project.project_number }}</div><h1 class="dashboard-title">{{ project.name }}</h1><p class="dashboard-subtitle">{{ project.get_status_display }} · {{ project.progress_percentage|floatformat:0 }}% complete</p></div><a class="btn btn-outline-primary" href="{% url 'construction-project-list' %}">Back to projects</a></section>
+<section class="construction-detail-grid"><div class="surface construction-detail-card"><small>CLIENT</small><strong>{{ project.client_name|default:"Not set" }}</strong><small>PROJECT MANAGER</small><strong>{{ project.project_manager.display_name|default:"Unassigned" }}</strong><small>CONTRACT VALUE</small><strong>{{ project.currency_code }} {{ project.contract_value|floatformat:2 }}</strong></div><div class="surface construction-detail-card"><small>DATES</small><strong>{{ project.start_date|default:"Not set" }} to {{ project.expected_completion_date|default:"Not set" }}</strong><small>ADDRESS</small><strong>{{ project.address|default:"Not set" }}</strong><small>DESCRIPTION</small><p>{{ project.description|default:"No description recorded." }}</p></div></section>
+{% endblock %}

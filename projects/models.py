@@ -63,6 +63,14 @@ def make_public_token() -> str:
 
 
 class Client(SoftDeleteModel):
+    # Nullable during the legacy ownership audit; new records should always be scoped.
+    organization = models.ForeignKey(
+        "accounts.Company",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="clients",
+    )
     full_name = models.CharField(max_length=255)
     mobile_number = models.CharField(max_length=30)
     email = models.EmailField(blank=True)
@@ -91,6 +99,14 @@ class Client(SoftDeleteModel):
 
 
 class Project(SoftDeleteModel):
+    # Kept nullable until existing project ownership has been verified.
+    organization = models.ForeignKey(
+        "accounts.Company",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="projects",
+    )
     public_token = models.CharField(max_length=32, unique=True, default=make_public_token, editable=False)
     project_number = models.CharField(max_length=50, unique=True, blank=True)
     service_type = models.ForeignKey("workflows.ServiceType", on_delete=models.PROTECT, related_name="projects")

@@ -1,21 +1,26 @@
 from __future__ import annotations
 
+import hashlib
+
 from django.contrib.auth import login, logout
 from django.contrib import messages
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import Group
 from django.contrib.auth.views import LoginView
+from django.db import transaction
 from django.db.models import Count
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView
-from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth.forms import PasswordChangeForm, SetPasswordForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import CreateView, FormView
+from django.utils import timezone
 
 from accounts.forms import GarimaAuthenticationForm, OrganizationUserForm, UnifiedAuthenticationForm
-from accounts.models import OrganizationMembership, PlatformRole, User
+from accounts.models import OrganizationInvitation, OrganizationMembership, PlatformRole, User
+from core.services import log_audit
 
 
 class StaffRequiredMixin(UserPassesTestMixin):
@@ -116,6 +121,62 @@ class OrganizationSelectionView(LoginRequiredMixin, TemplateView):
 
 class AccessDeniedView(LoginRequiredMixin, TemplateView):
     template_name = "accounts/access_denied.html"
+
+
+class OrganizationInvitationView(FormView):
+    template_name = "registration/organization_invitation.html"
+    form_class = SetPasswordForm
+
+    def dispatch(self, request, *args, **kwargs):
+        digest = hashlib.sha256(kwargs["token"].encode()).hexdigest()
+        self.invitation = get_object_or_404(
+            OrganizationInvitation.objects.select_related("organization"),
+            token_digest=digest,
+            accepted_at__isnull=True,
+            revoked_at__isnull=True,
+        )
+        if self.invitation.expires_at <= timezone.now():
+            return render(
+                request,
+                self.template_name,
+                {"expired": True, "organization": self.invitation.organization},
+            )
+        self.user = get_object_or_404(User, email__iexact=self.invitation.email)
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.user
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({"organization": self.invitation.organization, "invitation": self.invitation})
+        return context
+
+    def form_valid(self, form):
+        with transaction.atomic():
+            form.save()
+            self.user.is_active = True
+            self.user.must_change_password = False
+            self.user.save(update_fields=["password", "is_active", "must_change_password"])
+            membership = OrganizationMembership.objects.get(
+                user=self.user,
+                organization=self.invitation.organization,
+            )
+            membership.is_active = True
+            membership.save(update_fields=["is_active"])
+            self.invitation.accepted_at = timezone.now()
+            self.invitation.save(update_fields=["accepted_at"])
+            log_audit(
+                self.user,
+                "organization.invitation_accepted",
+                obj=self.invitation.organization,
+                summary=f"Accepted invitation for {self.invitation.organization.name}.",
+            )
+        login(self.request, self.user)
+        self.request.session["organization_id"] = self.invitation.organization_id
+        return redirect("dashboard")
 
 
 def logout_view(request):

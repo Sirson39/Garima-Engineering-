@@ -1,0 +1,5 @@
+{% extends "professional_services/base.html" %}
+{% block content %}
+<section class="dashboard-heading"><div><a class="small" href="{% url 'ps-'|add:resource %}">Back to {{ label|lower }}</a><h1 class="dashboard-title mt-2">{{ record }}</h1><span class="badge badge-soft">{{ record.get_status_display }}</span></div>{% if can_change %}<a class="btn btn-primary" href="{% url 'ps-'|add:resource|add:'-edit' record.pk %}">Edit {{ resource|slice:':-1' }}</a>{% endif %}</section>
+<section class="surface p-4"><dl class="row g-4 mb-0">{% for label,value in fields %}<div class="col-md-6"><dt class="small text-muted mb-1">{{ label }}</dt><dd class="mb-0 text-break">{{ value|default_if_none:'—'|linebreaksbr }}</dd></div>{% endfor %}{% if resource == 'engagements' %}<div class="col-md-6"><dt class="small text-muted mb-1">Effective billing rate ({{ ps_organization.currency_code }})</dt><dd>{{ record.effective_rate|default_if_none:'Not configured' }}</dd></div>{% endif %}</dl></section>
+{% endblock %}

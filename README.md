@@ -49,8 +49,28 @@ python manage.py seed_demo_data
 5. Start the development server:
 
 ```bash
-python manage.py runserver
+powershell -ExecutionPolicy Bypass -File scripts/start_server.ps1
 ```
+
+The local development application uses PostgreSQL only. Copy `.env.example` to `.env`, enter the password for the `siru_app` PostgreSQL role, and use the startup script above. It verifies the PostgreSQL backend, applies pending migrations, and starts the single development server at `http://127.0.0.1:8000/`. SQLite is reserved for automated test databases and cannot be used by normal application commands.
+
+## Organization workspaces
+
+Platform administrators can provision Professional Service Management and Retail
+Management from the organization creation wizard. Both use the existing login,
+organization membership, role permissions and PostgreSQL database.
+
+* Professional Services Phase 1: clients, services, engagements, billing defaults,
+  assignment-aware access, dashboard, roles and audit activity.
+  See [architecture and scope](docs/professional-services-phase-one.md).
+* Retail: products, locations, suppliers, customers, inventory, purchase receipts,
+  sales, payment recording, full-sale returns, reports, roles and audit activity.
+  See [architecture and scope](docs/retail-management.md). Start by creating a store
+  location and products, then receive a purchase or record an opening-stock
+  adjustment before posting the first sale.
+
+Apply migrations with `python manage.py migrate`; run checks with
+`python manage.py check` and tests with `python manage.py test`.
 
 ## Environment Variables
 
@@ -88,4 +108,3 @@ See [`docs/architecture.md`](docs/architecture.md) for the PostgreSQL backup and
 * Uploaded files are stored outside the static assets directory and are served through authenticated views.
 * The QR code endpoint generates a printable PNG for each project file.
 * Workflow stages, numbering schemes, and document checklists are editable from the workflow catalogue and Django admin.
-

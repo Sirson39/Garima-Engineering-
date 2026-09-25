@@ -1,10 +1,30 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+def load_local_environment() -> None:
+    """Load local development settings without committing credentials."""
+    env_file = BASE_DIR / ".env"
+    if not env_file.exists():
+        return
+    for raw_line in env_file.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        name, value = line.split("=", 1)
+        name = name.strip()
+        value = value.strip().strip('"').strip("'")
+        if name:
+            os.environ.setdefault(name, value)
+
+
+load_local_environment()
 
 
 def env(name: str, default: str | None = None) -> str | None:
@@ -48,6 +68,11 @@ INSTALLED_APPS = [
     "core",
     "workflows",
     "projects",
+    "construction",
+    "office",
+    "valuation",
+    "professional_services",
+    "retail",
     "platform_admin",
 ]
 
@@ -84,14 +109,19 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 
 def build_database() -> dict:
-    engine = env("DJANGO_DB_ENGINE", "sqlite").lower()
-    if engine == "postgres" or env("POSTGRES_DB"):
+    explicit_engine = env("DJANGO_DB_ENGINE")
+    running_tests = any(argument == "test" or argument.startswith("test_") for argument in sys.argv[1:])
+    if running_tests:
+        engine = "sqlite"
+    else:
+        engine = (explicit_engine or "postgres").lower()
+    if engine == "postgres":
         return {
             "default": {
                 "ENGINE": "django.db.backends.postgresql",
-                "NAME": env("POSTGRES_DB", "garima"),
-                "USER": env("POSTGRES_USER", "garima"),
-                "PASSWORD": env("POSTGRES_PASSWORD", "garima"),
+                "NAME": env("POSTGRES_DB", "siru_platform"),
+                "USER": env("POSTGRES_USER", "siru_app"),
+                "PASSWORD": env("POSTGRES_PASSWORD", ""),
                 "HOST": env("POSTGRES_HOST", "localhost"),
                 "PORT": env("POSTGRES_PORT", "5432"),
                 "CONN_MAX_AGE": env_int("POSTGRES_CONN_MAX_AGE", 60),
@@ -100,12 +130,14 @@ def build_database() -> dict:
                 },
             }
         }
-    return {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
+    if running_tests and engine == "sqlite":
+        return {
+            "default": {
+                "ENGINE": "django.db.backends.sqlite3",
+                "NAME": BASE_DIR / "db.sqlite3",
+            }
         }
-    }
+    raise RuntimeError("This application uses PostgreSQL. Set DJANGO_DB_ENGINE=postgres.")
 
 
 DATABASES = build_database()

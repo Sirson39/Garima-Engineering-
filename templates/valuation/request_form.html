@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}New valuation | {{ organization.company_name }}{% endblock %}
+{% block content %}
+<section class="dashboard-heading"><div><div class="eyebrow">VALUATION REQUEST</div><h1 class="dashboard-title">New valuation</h1><p class="dashboard-subtitle">Create a request for a controlled valuation workflow. Property calculations are added in a later phase.</p></div></section>
+<section class="surface p-4" style="max-width: 1000px"><form method="post">{% csrf_token %}{% for field in form %}<div class="mb-3"><label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}</div>{% endfor %}<div class="d-flex gap-2"><a class="btn btn-light-brand" href="{% url 'valuation-request-list' %}">Cancel</a><button class="btn btn-primary" type="submit">Create valuation file</button></div></form></section>
+{% endblock %}

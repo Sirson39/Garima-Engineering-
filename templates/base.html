@@ -17,6 +17,7 @@
   <div class="app-shell">
     <aside class="sidebar offcanvas-lg offcanvas-start sidebar-offcanvas" tabindex="-1" id="sidebarNav" aria-labelledby="sidebarNavLabel">
       <div class="sidebar-brand">
+        {% block sidebar_brand %}
         <div class="brand-mark">
           {% if organization.logo %}
             <img src="{{ organization.logo.url }}" alt="{{ organization.company_name }}">
@@ -26,20 +27,25 @@
         </div>
         <div>
           <div class="brand-name">{{ organization.company_name }}</div>
-          <div class="brand-subtitle">{{ organization.slogan|default:"Engineering consultancy management" }}</div>
+          <div class="brand-subtitle">{% if user.company.system_template.code == 'custom-organization' %}Configurable workspace{% elif user.company.system_template.code == 'construction-management' %}Construction operations{% elif user.company.system_template.code == 'general-office-management' %}General office management{% elif user.company.system_template.code == 'hospital-management' %}Hospital management{% elif user.company.system_template.code == 'valuation-management' %}Property valuation management{% else %}{{ organization.slogan|default:"Engineering consultancy management" }}{% endif %}</div>
         </div>
+        {% endblock %}
       </div>
       <div class="offcanvas-body">
         <nav class="sidebar-nav" aria-label="Main navigation">
+          {% block workspace_navigation %}
           <div class="nav-group">
             <div class="nav-group-label">Main</div>
-            <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 11 8-7 8 7v9H4zM9 20v-6h6v6"/></svg></span>Dashboard</a>
-            <a class="nav-link {% if request.resolver_match.url_name == 'project-create' %}active{% endif %}" href="{% url 'project-create' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>New Project</a>
+            <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'office-dashboard' or request.resolver_match.url_name == 'valuation-dashboard' %}active{% endif %}" href="{% if user.company.system_template.code == 'general-office-management' %}{% url 'office-dashboard' %}{% elif user.company.system_template.code == 'valuation-management' %}{% url 'valuation-dashboard' %}{% else %}{% url 'dashboard' %}{% endif %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 11 8-7 8 7v9H4zM9 20v-6h6v6"/></svg></span>Dashboard</a>
+            {% if user.company.system_template.code == 'valuation-management' %}<a class="nav-link {% if request.resolver_match.url_name == 'valuation-request-create' %}active{% endif %}" href="{% url 'valuation-request-create' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>New valuation</a><a class="nav-link {% if request.resolver_match.url_name == 'valuation-request-list' %}active{% endif %}" href="{% url 'valuation-request-list' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg></span>Valuation files</a><a class="nav-link {% if request.resolver_match.url_name == 'valuation-banks' %}active{% endif %}" href="{% url 'valuation-banks' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16M6 20V9l6-5 6 5v11M9 20v-6h6v6M3 9h18"/></svg></span>Banks and clients</a>{% endif %}
+            {% if user.company.system_template.code == 'general-office-management' %}<a class="nav-link {% if request.resolver_match.url_name == 'office-dashboard' %}active{% endif %}" href="{% url 'office-dashboard' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16M6 20V8h12v12M9 8V4h6v4M9 12h6M9 16h6"/></svg></span>Office dashboard</a><a class="nav-link {% if request.resolver_match.url_name == 'office-staff' %}active{% endif %}" href="{% url 'office-staff' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20c.5-3.2 2.4-5 6-5s5.5 1.8 6 5M16 11a3 3 0 1 0 0-6M15 15c3.2 0 5.2 1.8 6 5"/></svg></span>Staff directory</a><a class="nav-link {% if request.resolver_match.url_name == 'office-departments' %}active{% endif %}" href="{% url 'office-departments' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16M6 20V8h12v12M9 8V4h6v4M9 12h6M9 16h6"/></svg></span>Departments</a>{% endif %}
+            {% if user.company.system_template.code != 'custom-organization' and user.company.system_template.code != 'construction-management' and user.company.system_template.code != 'general-office-management' and user.company.system_template.code != 'hospital-management' and user.company.system_template.code != 'valuation-management' %}<a class="nav-link {% if request.resolver_match.url_name == 'project-create' %}active{% endif %}" href="{% url 'project-create' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>New Project</a>
             <a class="nav-link {% if request.resolver_match.url_name == 'project-list' %}active{% endif %}" href="{% url 'project-list' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg></span>All Projects</a>
             <a class="nav-link {% if request.resolver_match.url_name == 'tasks' %}active{% endif %}" href="{% url 'tasks' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></span>My Tasks</a>
-            <a class="nav-link {% if request.resolver_match.url_name == 'clients' %}active{% endif %}" href="{% url 'clients' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M6 20c.6-3.1 2.5-5 6-5s5.4 1.9 6 5"/></svg></span>Clients</a>
+            <a class="nav-link {% if request.resolver_match.url_name == 'clients' %}active{% endif %}" href="{% url 'clients' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M6 20c.6-3.1 2.5-5 6-5s5.4 1.9 6 5"/></svg></span>Clients</a>{% endif %}
+            {% if user.company.system_template.code == 'construction-management' %}<a class="nav-link {% if request.resolver_match.url_name == 'construction-dashboard' %}active{% endif %}" href="{% url 'construction-dashboard' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16M6 20V9l6-5 6 5v11M9 20v-6h6v6"/></svg></span>Construction dashboard</a><a class="nav-link {% if request.resolver_match.url_name == 'construction-project-list' %}active{% endif %}" href="{% url 'construction-project-list' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg></span>Construction projects</a>{% endif %}
           </div>
-          <details class="nav-group" open>
+          {% if user.company.system_template.code != 'custom-organization' and user.company.system_template.code != 'general-office-management' and user.company.system_template.code != 'hospital-management' and user.company.system_template.code != 'valuation-management' %}<details class="nav-group" open>
             <summary class="nav-group-label">Operations <span>⌄</span></summary>
             <a class="nav-link {% if request.resolver_match.url_name == 'documents' %}active{% endif %}" href="{% url 'documents' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6zM14 3v4h4M9 12h6M9 16h6"/></svg></span>Documents</a>
             <a class="nav-link {% if request.resolver_match.url_name == 'file-register' %}active{% endif %}" href="{% url 'file-register' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v16H6zM9 4v16M12 4v16M15 4v16"/></svg></span>Physical File Register</a>
@@ -54,7 +60,8 @@
             <a class="nav-link {% if request.resolver_match.url_name == 'users-roles' %}active{% endif %}" href="{% url 'users-roles' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20c.5-3.2 2.4-5 6-5 1.3 0 2.4.2 3.3.7M16 11a3 3 0 1 0 0-6M15 15c3.4 0 5.2 1.8 6 5"/></svg></span>Users &amp; Roles</a>
             <a class="nav-link {% if request.resolver_match.url_name == 'system-settings' %}active{% endif %}" href="{% url 'system-settings' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-2.6v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1A1.7 1.7 0 0 0 8 15a1.7 1.7 0 0 0-1.5-1H6v-2.6h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5v-.2h2.6v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.2V14h-.2a1.7 1.7 0 0 0-1.5 1z"/></svg></span>System Settings</a>
             <a class="nav-link {% if request.resolver_match.url_name == 'workflow-catalog' %}active{% endif %}" href="{% url 'workflow-catalog' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v14H5zM8 9h8M8 13h8M8 17h5"/></svg></span>Workflow Catalog</a>
-          </details>
+          </details>{% endif %}
+          {% endblock %}
           {% if user.is_authenticated and user.is_platform_admin or user.is_superuser %}
             <div class="nav-group">
               <div class="nav-group-label">Platform</div>
@@ -73,7 +80,7 @@
           </button>
           <div>
             <div class="page-title mb-0">{{ page_title|default:"Workspace" }}</div>
-            <div class="page-subtitle small">Engineering operations workspace</div>
+            <div class="page-subtitle small">{% block workspace_subtitle %}{% if user.company.system_template.code == 'construction-management' %}Construction operations workspace{% elif user.company.system_template.code == 'custom-organization' %}Configurable organization workspace{% elif user.company.system_template.code == 'general-office-management' %}General office workspace{% elif user.company.system_template.code == 'hospital-management' %}Hospital operations workspace{% elif user.company.system_template.code == 'valuation-management' %}Property valuation workspace{% else %}Engineering operations workspace{% endif %}{% endblock %}</div>
           </div>
           <div class="ms-auto d-flex align-items-center gap-2">
             {% if user.is_authenticated %}

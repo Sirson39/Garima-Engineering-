@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ page_title }} | {{ retail_organization.name }}{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/retail.css' %}">{% endblock %}
+{% block sidebar_brand %}<div class="brand-mark text-primary" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l2-6h14l2 6M4 10v11h16V10M9 21v-7h6v7M3 9c0 4 5 4 5 0 0 4 8 4 8 0 0 4 5 4 5 0"/></svg></div><div><div class="brand-name">{{ retail_organization.name }}</div><div class="brand-subtitle">Retail management</div></div>{% endblock %}
+{% block workspace_navigation %}<div class="nav-group"><div class="nav-group-label">Retail workspace</div>{% for item in retail_navigation %}<a class="nav-link {% if request.path == item.url or item.url_name != 'rt-dashboard' and item.url in request.path %}active{% endif %}" href="{{ item.url }}"><span class="nav-icon" aria-hidden="true">{% if item.url_name == 'rt-dashboard' %}◫{% elif item.url_name == 'rt-sales' %}▣{% elif item.url_name == 'rt-inventory' %}▤{% else %}◇{% endif %}</span>{{ item.label }}</a>{% endfor %}</div><div class="nav-group"><a class="nav-link" href="{% url 'organization-select' %}">Switch organization</a></div>{% endblock %}
+{% block workspace_subtitle %}{{ retail_organization.name }} · Retail Management{% endblock %}

@@ -13,8 +13,17 @@
 <section class="platform-stats platform-dashboard-stats" aria-label="Platform metrics">
   <div><span class="platform-stat-icon blue"><i data-lucide="building-2"></i></span><span><small>Organizations</small><strong>{{ company_count }}</strong><em>Registered on Siru</em></span></div>
   <div><span class="platform-stat-icon green"><i data-lucide="circle-check"></i></span><span><small>Active organizations</small><strong>{{ active_company_count }}</strong><em>Currently operational</em></span></div>
-  <div><span class="platform-stat-icon orange"><i data-lucide="users-round"></i></span><span><small>Total users</small><strong>{{ user_count }}</strong><em>Across all organizations</em></span></div>
+  <div><span class="platform-stat-icon blue"><i data-lucide="users-round"></i></span><span><small>Total users</small><strong>{{ user_count }}</strong><em>Across all organizations</em></span></div>
 </section>
+
+{% if new_admin_credentials %}
+<section class="platform-credential-notice" aria-label="Temporary administrator credentials">
+  <div class="platform-credential-heading"><i data-lucide="key-round"></i><div><strong>Temporary administrator credentials</strong><span>{{ new_admin_credentials.organization }} was created successfully.</span></div></div>
+  <p>Give these credentials to the administrator securely. They must change the password after the first login.</p>
+  <div class="platform-credential-grid"><div><small>Administrator email</small><code>{{ new_admin_credentials.email }}</code></div><div><small>Temporary password</small><code>{{ new_admin_credentials.password }}</code></div></div>
+  <div class="platform-credential-warning"><i data-lucide="shield-alert"></i>This password is shown only once and is not stored as plain text.</div>
+</section>
+{% endif %}
 
 <div class="platform-panel" id="organizations">
   <div class="platform-panel-heading"><div><span class="platform-eyebrow">ORGANIZATION DIRECTORY</span><h2>Organizations</h2><p>Manage organization access, administrators, status and workspace settings.</p></div></div>
@@ -29,7 +38,7 @@
             <td>{{ company.primary_admin_email|default:company.email|default:company.phone|default:"Not provided" }}</td>
             <td>{{ company.user_count }}</td>
             <td>{% if company.is_active %}<span class="platform-status active"><span></span>Active</span>{% else %}<span class="platform-status inactive"><span></span>Inactive</span>{% endif %}</td>
-            <td class="text-end"><a class="platform-manage-link" href="{% url 'platform-company-edit' company.pk %}"><i data-lucide="settings-2"></i>Manage</a><details class="platform-actions"><summary aria-label="More actions for {{ company.name }}"><i data-lucide="ellipsis"></i></summary><div class="platform-actions-menu"><div class="platform-actions-heading"><span>Organization actions</span><small>ID: {{ company.slug|upper|truncatechars:18 }}</small></div><a href="{% url 'platform-company-edit' company.pk %}"><i data-lucide="pencil"></i>Edit organization</a>{% if company.is_active %}<form method="post" action="{% url 'platform-company-toggle' company.pk %}" onsubmit="return confirm('Suspend this organization? Its workspace will no longer be active.');">{% csrf_token %}<button type="submit"><i data-lucide="pause-circle"></i>Suspend organization</button></form>{% else %}<form method="post" action="{% url 'platform-company-toggle' company.pk %}">{% csrf_token %}<button type="submit"><i data-lucide="circle-check"></i>Reactivate organization</button></form>{% endif %}</div></details></td>
+            <td class="text-end"><details class="platform-actions"><summary aria-label="Manage {{ company.name }}"><i data-lucide="ellipsis"></i><span class="visually-hidden">Manage</span></summary><div class="platform-actions-menu"><div class="platform-actions-heading"><span>Organization actions</span><small>ID: {{ company.slug|upper|truncatechars:18 }}</small></div><a href="{% url 'platform-company-edit' company.pk %}"><i data-lucide="pencil"></i>Edit organization</a>{% if company.is_active %}<form method="post" action="{% url 'platform-company-toggle' company.pk %}" data-confirm="true" data-confirm-severity="warning" data-confirm-title="Suspend {{ company.name }}?" data-confirm-name="{{ company.name }}" data-confirm-body="Its workspace and {{ company.user_count }} user{{ company.user_count|pluralize }} will lose access immediately. You can reactivate it later from Organizations." data-confirm-context="Organization ID: {{ company.slug|upper }}" data-confirm-label="Suspend organization" data-confirm-icon="triangle-alert">{% csrf_token %}<button type="submit"><i data-lucide="pause-circle"></i>Suspend organization</button></form>{% else %}<form method="post" action="{% url 'platform-company-toggle' company.pk %}">{% csrf_token %}<button type="submit"><i data-lucide="circle-check"></i>Reactivate organization</button></form>{% endif %}<form method="post" action="{% url 'platform-company-remove' company.pk %}" data-confirm="true" data-confirm-severity="destructive" data-confirm-title="Remove {{ company.name }}?" data-confirm-name="{{ company.name }}" data-confirm-body="This will permanently remove the organization and its memberships from Siru. This cannot be undone." data-confirm-context="Organization ID: {{ company.slug|upper }}" data-confirm-label="Remove organization" data-confirm-icon="trash-2" data-confirm-require-typing="true">{% csrf_token %}<button type="submit"><i data-lucide="trash-2"></i>Remove organization</button></form></div></details></td>
           </tr>
         {% empty %}
           <tr><td colspan="5"><div class="platform-empty-state"><i data-lucide="building-2"></i><strong>No organizations yet</strong><p>Create your first organization workspace to begin managing access.</p><a class="platform-add-company" href="{% url 'platform-company-create' %}"><i data-lucide="plus"></i>Add organization</a></div></td></tr>
@@ -38,4 +47,5 @@
     </table>
   </div>
 </div>
+{% include "platform_admin/_confirmation_dialog.html" %}
 {% endblock %}

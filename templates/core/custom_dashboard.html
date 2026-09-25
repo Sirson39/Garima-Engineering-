@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ custom_organization.name }} | Workspace{% endblock %}
+{% block content %}
+<section class="dashboard-heading">
+  <div>
+    <div class="eyebrow">CUSTOM WORKSPACE</div>
+    <h1 class="dashboard-title">{{ custom_organization.name }}</h1>
+    <p class="dashboard-subtitle">Your configurable workspace is ready. Enabled capabilities will appear here as they are implemented and published.</p>
+  </div>
+</section>
+<section class="surface dashboard-panel">
+  <div class="panel-heading">
+    <div>
+      <h2>Workspace capabilities</h2>
+      <p>{% if custom_configuration and custom_configuration.starting_structure %}Started from {{ custom_configuration.starting_structure.name }}.{% else %}Started from a blank workspace.{% endif %}</p>
+    </div>
+    <span class="badge badge-soft">{{ custom_modules|length }} enabled</span>
+  </div>
+  <div class="row g-3">
+    {% for installation in custom_modules %}
+      <div class="col-12 col-md-6 col-xl-4"><div class="surface p-3 h-100"><strong>{{ installation.module.name }}</strong><p class="mb-0 text-muted small">Available in this organization configuration.</p></div></div>
+    {% empty %}
+      <div class="col-12"><div class="empty-state">No optional capabilities are enabled yet. A workspace administrator can configure them later.</div></div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
