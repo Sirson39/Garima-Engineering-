@@ -20,20 +20,22 @@
     <form method="post" class="platform-profile-form">
       {% csrf_token %}
       {{ form.non_field_errors }}
-      <div class="platform-profile-avatar">{{ user.username|first|upper }}</div>
-      <div class="row g-3">
+      <div class="platform-profile-identity">
+        <div class="platform-profile-avatar" aria-hidden="true">{{ user.first_name|default:user.username|first|upper }}</div>
+        <div><strong>{{ user.get_full_name|default:user.username }}</strong><span>Platform administrator</span></div>
+      </div>
+      <div class="row g-4">
         {% for field in form %}
-          <div class="col-md-6">
+          <div class="{% if field.name == 'email' %}col-12{% else %}col-md-6{% endif %}">
             <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
             {{ field }}
             {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
           </div>
         {% endfor %}
       </div>
-      <div class="platform-profile-note"><i data-lucide="shield-check"></i><span>Your email is used for platform access. Password changes remain managed through the secure sign-in flow.</span></div>
-      <div class="d-flex gap-2 mt-4">
-        <button class="platform-add-company" type="submit"><i data-lucide="save"></i>Save changes</button>
-        <a class="btn btn-light-brand" href="{% url 'platform-dashboard' %}">Cancel</a>
+      <div class="platform-profile-actions">
+        <a class="platform-profile-button platform-profile-cancel" href="{% url 'platform-dashboard' %}">Cancel</a>
+        <button class="platform-profile-button platform-profile-save" type="submit"><i data-lucide="check" aria-hidden="true"></i><span>Save changes</span></button>
       </div>
     </form>
   </div>

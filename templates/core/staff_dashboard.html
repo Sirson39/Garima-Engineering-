@@ -1,0 +1,6 @@
+{% extends "core/employee_dashboard.html" %}
+{% block dashboard_heading %}Staff dashboard{% endblock %}
+{% block dashboard_description %}Keep track of documents, assigned tasks and file handovers.{% endblock %}
+{% block account_work %}<div class="surface p-4 h-100"><h2 class="h5 mb-3">Document follow-up</h2>
+{% for item in pending_documents %}<div class="border-bottom py-3"><a href="{% url 'project-detail' item.project_id %}">{{ item.name }}</a><div class="soft-muted small">{{ item.project.project_number }}</div></div>{% empty %}<p class="soft-muted">No required documents pending on your projects.</p>{% endfor %}
+<div class="border-top mt-4 pt-3"><a href="{% url 'file-register' %}">{{ pending_handovers }} file handover{{ pending_handovers|pluralize }} awaiting confirmation</a></div></div>{% endblock %}

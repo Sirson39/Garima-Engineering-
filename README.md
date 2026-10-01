@@ -14,7 +14,8 @@ Production-ready Django foundation for Garima Engineering Consultancy.
 
 ## Features In This MVP
 
-* Custom user model and role groups
+* Individual Admin, Engineer and Staff accounts with separate login emails
+* Dedicated Engineer and Staff dashboards with membership-scoped project access
 * Secure login with lockout tracking
 * Client register
 * Project register with automatic numbering
@@ -40,11 +41,20 @@ pip install -r requirements.txt
 python manage.py migrate
 ```
 
-4. Seed demo data:
+4. Initialize engineering workflow catalogs (no demo users or shared passwords):
 
 ```bash
 python manage.py seed_demo_data
 ```
+
+Organization admins create individual accounts under **Engineers & Staff → Add Engineer or Staff**.
+Set the person's name, unique login email, account type and temporary password.
+Share these credentials privately. The user changes the password on first login and
+is then routed to their Engineer or Staff dashboard. Passwords are stored as hashes.
+Assign users through project members, tasks or site visits. Employees only see assigned
+projects in their active organization; team administration and financial management
+remain restricted to the organization admin. The legacy demo permission groups are
+removed by migration `accounts.0018_individual_team_accounts`, preserving user records.
 
 5. Start the development server:
 

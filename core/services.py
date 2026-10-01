@@ -50,7 +50,15 @@ def build_dashboard_context(user):
     from projects.constants import PROJECT_STATUS_CHOICES
     from projects.models import DocumentChecklistItem, PhysicalFileTransfer, Project, Task
 
-    if user.is_superuser or user.groups.filter(name__in={"System Administrator", "Director/Management"}).exists():
+    if getattr(user, "_workspace_organization_id", user.company_id):
+        from projects.services import project_queryset_for_user
+        from accounts.workspace_access import active_membership
+        project_scope = project_queryset_for_user(user)
+        task_scope = Task.objects.filter(is_deleted=False, project__in=project_scope)
+        membership = active_membership(user)
+        if not membership or membership.role != "admin":
+            task_scope = task_scope.filter(assigned_employee=user)
+    elif user.is_superuser or user.groups.filter(name__in={"System Administrator", "Director/Management"}).exists():
         project_scope = Project.objects.filter(is_deleted=False)
         task_scope = Task.objects.filter(is_deleted=False)
     else:

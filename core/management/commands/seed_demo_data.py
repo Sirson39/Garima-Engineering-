@@ -1,36 +1,11 @@
 from __future__ import annotations
 
-from decimal import Decimal
-
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group, Permission
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils.text import slugify
 
 from core.models import OrganizationProfile
-from projects.models import Client, Project
-from projects.services import create_project_initial_state
 from workflows.models import DocumentCategory, DocumentTemplate, NumberingScheme, ServiceType, WorkflowStageTemplate
-
-
-User = get_user_model()
-
-DEFAULT_PASSWORD = "Password123!"
-
-ROLE_NAMES = [
-    "System Administrator",
-    "Director/Management",
-    "Reception/Document Officer",
-    "Project Manager",
-    "Planning Engineer",
-    "Structural Engineer",
-    "Site Engineer",
-    "Online Processing Officer",
-    "Municipality File Handler",
-    "Accounts Officer",
-    "Read-only/Auditor",
-]
 
 
 CATEGORY_NAMES = [
@@ -145,15 +120,6 @@ AB_DOCS = [
 ]
 
 
-def ensure_group(name: str) -> Group:
-    group, _ = Group.objects.get_or_create(name=name)
-    return group
-
-
-def assign_permissions(group: Group, permissions):
-    group.permissions.set(permissions)
-
-
 def ensure_service_type(code: str, name: str, description: str) -> ServiceType:
     service_type, _ = ServiceType.objects.get_or_create(code=code, defaults={"name": name, "description": description})
     if service_type.name != name or service_type.description != description:
@@ -237,153 +203,15 @@ def ensure_catalog(service_type: ServiceType, stages, docs):
         )
 
 
-def ensure_user(username: str, first_name: str, last_name: str, email: str, group: Group, password: str, is_staff: bool = True, is_superuser: bool = False):
-    user, created = User.objects.get_or_create(
-        username=username,
-        defaults={
-            "first_name": first_name,
-            "last_name": last_name,
-            "email": email,
-            "is_staff": is_staff,
-            "is_superuser": is_superuser,
-        },
-    )
-    user.first_name = first_name
-    user.last_name = last_name
-    user.email = email
-    user.is_staff = is_staff
-    user.is_superuser = is_superuser
-    user.is_active = True
-    user.set_password(password)
-    user.save()
-    user.groups.add(group)
-    return user
-
-
 class Command(BaseCommand):
-    help = "Seed demo roles, workflows, and sample projects for Garima Engineering Consultancy."
+    help = "Initialize engineering workflow catalogs without creating accounts or permission groups."
 
     @transaction.atomic
     def handle(self, *args, **options):
-        profile = OrganizationProfile.load()
-        profile.company_name = "Garima Engineering Consultancy"
-        profile.short_name = "GEC"
-        profile.slogan = "Engineering consultancy management"
-        profile.default_bs_year = "2083"
-        profile.save()
-
-        groups = {name: ensure_group(name) for name in ROLE_NAMES}
-        internal_perm_groups = ["System Administrator", "Director/Management", "Project Manager"]
-        all_perms = Permission.objects.all()
-        view_perms = Permission.objects.filter(codename__startswith="view_")
-        for group_name in internal_perm_groups:
-            assign_permissions(groups[group_name], all_perms)
-        assign_permissions(groups["Read-only/Auditor"], view_perms)
-
-        users = {
-            "admin": ensure_user("admin", "Admin", "User", "adminsiru@gmail.com", groups["System Administrator"], DEFAULT_PASSWORD, True, True),
-            "manager": ensure_user("manager", "Mina", "Shrestha", "manager@gec.local", groups["Director/Management"], DEFAULT_PASSWORD),
-            "reception": ensure_user("reception", "Rita", "Khadka", "reception@gec.local", groups["Reception/Document Officer"], DEFAULT_PASSWORD),
-            "pm": ensure_user("pm", "Prakash", "Koirala", "pm@gec.local", groups["Project Manager"], DEFAULT_PASSWORD),
-            "puja": ensure_user("puja", "Puja", "Karki", "puja@gec.local", groups["Planning Engineer"], DEFAULT_PASSWORD),
-            "saroj": ensure_user("saroj", "Saroj", "Adhikari", "saroj@gec.local", groups["Online Processing Officer"], DEFAULT_PASSWORD),
-            "ram": ensure_user("ram", "Ram", "Acharya", "ram@gec.local", groups["Municipality File Handler"], DEFAULT_PASSWORD),
-            "structural": ensure_user("structural", "Sujan", "Sharma", "structural@gec.local", groups["Structural Engineer"], DEFAULT_PASSWORD),
-            "site": ensure_user("site", "Sabina", "Thapa", "site@gec.local", groups["Site Engineer"], DEFAULT_PASSWORD),
-            "accounts": ensure_user("accounts", "Anita", "Maharjan", "accounts@gec.local", groups["Accounts Officer"], DEFAULT_PASSWORD),
-            "auditor": ensure_user("auditor", "Arjun", "Bista", "auditor@gec.local", groups["Read-only/Auditor"], DEFAULT_PASSWORD),
-        }
-
         naya = ensure_service_type("NN", "Naya Naksa", "New building planning and approval workflow")
         abhilekh = ensure_service_type("AB", "Abhilekhikaran", "As-built / existing building workflow")
         ensure_numbering_scheme(naya, "NN")
         ensure_numbering_scheme(abhilekh, "AB")
         ensure_catalog(naya, NAYA_STAGES, NAYA_DOCS)
         ensure_catalog(abhilekh, AB_STAGES, AB_DOCS)
-
-        client_1, _ = Client.objects.get_or_create(
-            full_name="Suresh Adhikari",
-            mobile_number="9841000001",
-            defaults={
-                "email": "suresh@example.com",
-                "citizenship_number": "11-01-01-00001",
-                "permanent_address": "Kathmandu",
-                "current_address": "Kathmandu-10",
-                "province": "Bagmati",
-                "district": "Kathmandu",
-                "municipality": "Kathmandu Metropolitan City",
-                "ward_number": "10",
-                "created_by": users["admin"],
-            },
-        )
-        client_2, _ = Client.objects.get_or_create(
-            full_name="Maya Shrestha",
-            mobile_number="9841000002",
-            defaults={
-                "email": "maya@example.com",
-                "citizenship_number": "11-01-01-00002",
-                "permanent_address": "Lalitpur",
-                "current_address": "Lalitpur-5",
-                "province": "Bagmati",
-                "district": "Lalitpur",
-                "municipality": "Lalitpur Metropolitan City",
-                "ward_number": "5",
-                "created_by": users["admin"],
-            },
-        )
-
-        if not Project.objects.filter(service_type=naya).exists():
-            project = Project.objects.create(
-                service_type=naya,
-                client=client_1,
-                registration_date_bs=profile.default_bs_year + "-01-15",
-                property_location="Kathmandu-10, Samakhushi",
-                kitta_number="1234",
-                sheet_number="45",
-                land_area="8 aana",
-                province="Bagmati",
-                district="Kathmandu",
-                municipality="Kathmandu Metropolitan City",
-                ward_number="10",
-                government_application_number="GOV-NN-001",
-                project_fee=Decimal("150000.00"),
-                discount=Decimal("0.00"),
-                current_file_holder="Reception",
-                current_file_location="Reception",
-                priority="High",
-                status="New",
-                created_by=users["admin"],
-                updated_by=users["admin"],
-                current_responsible_employee=users["reception"],
-            )
-            project.members.set(User.objects.filter(is_staff=True))
-            create_project_initial_state(project, actor=users["admin"])
-
-        if not Project.objects.filter(service_type=abhilekh).exists():
-            project = Project.objects.create(
-                service_type=abhilekh,
-                client=client_2,
-                registration_date_bs=profile.default_bs_year + "-02-05",
-                property_location="Lalitpur-5, Jawalakhel",
-                kitta_number="5678",
-                sheet_number="22",
-                land_area="12 aana",
-                province="Bagmati",
-                district="Lalitpur",
-                municipality="Lalitpur Metropolitan City",
-                ward_number="5",
-                government_application_number="GOV-AB-001",
-                project_fee=Decimal("180000.00"),
-                discount=Decimal("5000.00"),
-                current_file_holder="Reception",
-                current_file_location="Reception",
-                priority="Normal",
-                status="New",
-                created_by=users["admin"],
-                updated_by=users["admin"],
-                current_responsible_employee=users["reception"],
-            )
-            project.members.set(User.objects.filter(is_staff=True))
-            create_project_initial_state(project, actor=users["admin"])
-
-        self.stdout.write(self.style.SUCCESS("Demo data seeded successfully."))
+        self.stdout.write(self.style.SUCCESS("Workflow catalogs initialized. Create individual accounts from Engineers & Staff."))

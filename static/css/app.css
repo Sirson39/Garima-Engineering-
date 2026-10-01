@@ -2649,11 +2649,21 @@ button.reference-software-link {
 .platform-profile-layout { max-width: 760px; }
 .platform-profile-card { overflow: hidden; }
 .platform-profile-form { padding: 26px 28px 28px; }
-.platform-profile-avatar { display: grid; width: 56px; height: 56px; margin-bottom: 22px; place-items: center; border-radius: 50%; color: #fff; background: #246681; font-size: 20px; font-weight: 700; }
+.platform-profile-identity { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+.platform-profile-identity strong { display: block; color: #243c4d; font-size: 15px; font-weight: 600; }
+.platform-profile-identity span { display: block; margin-top: 3px; color: #8293a4; font-size: 12px; }
+.platform-profile-avatar { display: grid; width: 56px; height: 56px; flex: 0 0 56px; place-items: center; border: 1px solid #dce5ff; border-radius: 50%; color: #3b5ef5; background: #eef3ff; font-size: 20px; font-weight: 700; }
 .platform-profile-form .form-label { color: #435b6a; font-size: 12px; font-weight: 600; }
-.platform-profile-form input { border-color: #d7e0ea; border-radius: 8px; }
-.platform-profile-note { display: flex; align-items: center; gap: 9px; margin-top: 22px; padding: 12px; border: 1px solid #e4ebef; border-radius: 8px; color: #718492; background: #f8fafb; font-size: 11px; line-height: 1.4; }
-.platform-profile-note svg { width: 17px; height: 17px; flex: 0 0 17px; color: #14a89a; }
+.platform-profile-form input { min-height: 44px; border-color: #d7e0ea; border-radius: 8px; }
+.platform-profile-actions { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 30px; padding-top: 24px; border-top: 1px solid #e8edf4; }
+.platform-profile-button { display: inline-flex; min-height: 44px; min-width: 100px; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box; padding: 10px 20px; appearance: none; border: 1px solid transparent; border-radius: 9px; font: inherit; font-size: 13px; font-weight: 600; line-height: 1.5; text-decoration: none; white-space: nowrap; cursor: pointer; transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease; }
+.platform-profile-button svg { width: 17px; height: 17px; flex-shrink: 0; }
+.platform-profile-cancel { color: #526479; background: #fff; border-color: #d5dfea; }
+.platform-profile-cancel:hover { color: #b83a45; background: #fff1f2; border-color: #f0b8bf; }
+.platform-profile-save { min-width: 148px; color: #fff; background: #3b5ef5; border-color: #3b5ef5; box-shadow: 0 2px 4px rgba(59,94,245,.12); }
+.platform-profile-save:hover { color: #fff; background: #2f4ed5; border-color: #2f4ed5; box-shadow: 0 3px 8px rgba(59,94,245,.18); }
+.platform-profile-button:focus-visible { outline: 3px solid #a9bcff; outline-offset: 3px; }
+@media (max-width: 480px) { .platform-profile-actions { gap: 10px; } .platform-profile-button { flex: 1; min-width: 0; padding-inline: 12px; } }
 .platform-dashboard-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .platform-credential-notice { margin: 0 0 24px; padding: 18px 20px; border: 1px solid #b9d7ee; border-radius: 12px; color: #24445a; background: #f2f8fd; box-shadow: 0 8px 20px rgba(33,83,116,.06); }
 .platform-credential-heading { display: flex; align-items: flex-start; gap: 11px; }

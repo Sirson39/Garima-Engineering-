@@ -1,0 +1,14 @@
+<div class="nav-group">
+  <div class="nav-group-label">{{ engineering_membership.get_role_display }} workspace</div>
+  <a class="nav-link" href="{% url 'dashboard' %}">My dashboard</a>
+  <a class="nav-link" href="{% url 'project-list' %}">My projects</a>
+  <a class="nav-link" href="{% url 'tasks' %}">My tasks</a>
+  <a class="nav-link" href="{% url 'documents' %}">Documents</a>
+  {% if engineering_membership.role == 'engineer' %}
+    <a class="nav-link" href="{% url 'site-visits' %}">Site visits</a>
+  {% else %}
+    <a class="nav-link" href="{% url 'file-register' %}">File handovers</a>
+    <a class="nav-link" href="{% url 'government-records' %}">Government records</a>
+    <a class="nav-link" href="{% url 'municipality-tracking' %}">Municipality tracking</a>
+  {% endif %}
+</div>

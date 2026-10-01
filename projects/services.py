@@ -12,6 +12,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 
 from core.services import log_audit, notify_user
+from accounts.workspace_access import active_membership, organization_employees
 from projects.models import (
     Client,
     DocumentChecklistItem,
@@ -29,6 +30,9 @@ User = get_user_model()
 def user_has_role(user, *role_names: str) -> bool:
     if not user or not user.is_authenticated:
         return False
+    if getattr(user, "_workspace_organization_id", user.company_id):
+        membership = active_membership(user)
+        return bool(membership and membership.role == "admin")
     if user.is_superuser:
         return True
     return user.groups.filter(name__in=role_names).exists()
@@ -38,6 +42,18 @@ def project_queryset_for_user(user):
     qs = Project.objects.filter(is_deleted=False).select_related("client", "service_type", "current_responsible_employee")
     if not user or not user.is_authenticated:
         return qs.none()
+    if getattr(user, "_workspace_organization_id", user.company_id):
+        membership = active_membership(user)
+        if not membership:
+            return qs.none()
+        qs = qs.filter(organization_id=membership.organization_id)
+        if membership.role == "admin":
+            return qs
+        return qs.filter(
+            Q(current_responsible_employee=user) | Q(members=user) |
+            Q(tasks__assigned_employee=user, tasks__is_deleted=False) |
+            Q(site_visits__assigned_engineer=user, site_visits__is_deleted=False)
+        ).distinct()
     if user.is_superuser or (user.is_staff and user.groups.filter(name__in={"System Administrator", "Director/Management", "Project Manager"}).exists()):
         return qs
     return qs.filter(Q(created_by=user) | Q(current_responsible_employee=user) | Q(members=user)).distinct()
@@ -46,6 +62,10 @@ def project_queryset_for_user(user):
 def user_can_access_project(user, project: Project) -> bool:
     if not user or not user.is_authenticated:
         return False
+    if project.organization_id or getattr(user, "_workspace_organization_id", user.company_id):
+        membership = active_membership(user)
+        return bool(membership and project.organization_id == membership.organization_id and
+                    project_queryset_for_user(user).filter(pk=project.pk).exists())
     if user.is_superuser:
         return True
     if user.is_staff and user.groups.filter(name__in={"System Administrator", "Director/Management", "Project Manager"}).exists():
@@ -109,7 +129,14 @@ def required_documents_missing(project: Project) -> list[DocumentChecklistItem]:
     )
 
 
-def resolve_employee_for_stage(stage: WorkflowStageTemplate | None):
+def resolve_employee_for_stage(stage: WorkflowStageTemplate | None, organization_id=None):
+    if organization_id:
+        employees = organization_employees(organization_id)
+        account_type = "engineer" if stage and "engineer" in stage.responsible_role_hint.lower() else "staff"
+        return (employees.filter(organization_memberships__organization_id=organization_id,
+                                 organization_memberships__role=account_type).first() or
+                employees.filter(organization_memberships__organization_id=organization_id,
+                                 organization_memberships__role="admin").first())
     if not stage or not stage.responsible_role_hint:
         return User.objects.filter(is_active=True, is_staff=True).order_by("first_name", "last_name").first()
     candidates = User.objects.filter(
@@ -127,7 +154,7 @@ def initialize_project_workflow(project: Project, actor=None):
         create_project_checklist(project)
         first_stage = next_stage_template(project.service_type)
         if first_stage:
-            assignee = resolve_employee_for_stage(first_stage)
+            assignee = resolve_employee_for_stage(first_stage, project.organization_id)
             stage_history = ProjectStageHistory.objects.create(
                 project=project,
                 stage_template=first_stage,
@@ -166,7 +193,7 @@ def initialize_project_workflow(project: Project, actor=None):
 
 
 def create_task_for_stage(project: Project, stage_history: ProjectStageHistory, actor=None, assignee=None) -> Task:
-    assignee = assignee or stage_history.assigned_employee or resolve_employee_for_stage(stage_history.stage_template)
+    assignee = assignee or stage_history.assigned_employee or resolve_employee_for_stage(stage_history.stage_template, project.organization_id)
     task = Task.objects.create(
         project=project,
         related_stage=stage_history,
@@ -307,7 +334,7 @@ def advance_project_stage(
                 update_fields=["completed_at", "completed_by", "status", "updated_at"]
             )
 
-        assignee = assigned_employee or resolve_employee_for_stage(target_stage)
+        assignee = assigned_employee or resolve_employee_for_stage(target_stage, project.organization_id)
         stage_history = ProjectStageHistory.objects.create(
             project=project,
             stage_template=target_stage,

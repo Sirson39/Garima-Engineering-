@@ -6,10 +6,8 @@ from django.contrib.auth import login, logout
 from django.contrib import messages
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.contrib.auth.models import Group
 from django.contrib.auth.views import LoginView
-from django.db import transaction
-from django.db.models import Count
+from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView
@@ -21,6 +19,7 @@ from django.utils import timezone
 from accounts.forms import GarimaAuthenticationForm, OrganizationUserForm, UnifiedAuthenticationForm
 from accounts.models import OrganizationInvitation, OrganizationMembership, PlatformRole, User
 from core.services import log_audit
+from accounts.workspace_access import active_membership
 
 
 class StaffRequiredMixin(UserPassesTestMixin):
@@ -186,12 +185,10 @@ def logout_view(request):
 
 class OrganizationAdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     def test_func(self):
-        user = self.request.user
-        return user.is_authenticated and (
-            user.is_superuser
-            or user.is_platform_admin
-            or OrganizationMembership.objects.filter(user=user, role="admin", is_active=True).exists()
-        )
+        self.membership = active_membership(
+            self.request.user, self.request.session.get("organization_id") or self.request.user.company_id
+        ) if self.request.user.is_authenticated else None
+        return bool(self.membership and self.membership.role == "admin")
 
 
 class UsersAndRolesView(OrganizationAdminRequiredMixin, TemplateView):
@@ -199,11 +196,10 @@ class UsersAndRolesView(OrganizationAdminRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        users = User.objects.prefetch_related("groups").order_by("first_name", "last_name", "username")
-        if not (self.request.user.is_superuser or self.request.user.is_platform_admin):
-            users = users.filter(company=self.request.user.company)
-        context["users"] = users
-        context["groups"] = Group.objects.annotate(user_count=Count("user")).order_by("name")
+        context["memberships"] = OrganizationMembership.objects.filter(
+            organization=self.membership.organization
+        ).select_related("user").order_by("user__first_name", "user__last_name", "user__email")
+        context["team_organization"] = self.membership.organization
         return context
 
 
@@ -213,22 +209,22 @@ class OrganizationUserCreateView(OrganizationAdminRequiredMixin, FormView):
     success_url = reverse_lazy("users-roles")
 
     def form_valid(self, form):
-        organization = self.request.user.company
-        if not organization:
-            from django.core.exceptions import ValidationError
-
-            form.add_error(None, ValidationError("Your account is not assigned to an organization."))
-            return self.form_invalid(form)
+        organization = self.membership.organization
         role = form.cleaned_data["role"]
-        user = User.objects.create_user(
-            username=form.cleaned_data["email"],
-            email=form.cleaned_data["email"],
-            company=organization,
-            company_role=role,
-            must_change_password=True,
-        )
-        user.set_password(form.cleaned_data["initial_password"])
-        user.save(update_fields=["password"])
-        OrganizationMembership.objects.create(user=user, organization=organization, role=role)
-        messages.success(self.request, f"{user.email} was added as an {role.title()}.")
+        try:
+            with transaction.atomic():
+                user = User.objects.create_user(
+                    username=form.cleaned_data["email"], email=form.cleaned_data["email"],
+                    password=form.cleaned_data["initial_password"],
+                    first_name=form.cleaned_data["first_name"], last_name=form.cleaned_data["last_name"],
+                    company=organization, company_role=role, must_change_password=True,
+                )
+                OrganizationMembership.objects.create(user=user, organization=organization, role=role)
+                log_audit(self.request.user, "organization.account_created", obj=user,
+                          summary=f"Created {role} account in {organization.name}.",
+                          metadata={"organization_id": organization.pk, "account_type": role})
+        except IntegrityError:
+            form.add_error("email", "This login email is already in use.")
+            return self.form_invalid(form)
+        messages.success(self.request, f"Account created for {user.email}. Share their login email and temporary password privately. They will change it on first login.")
         return super().form_valid(form)

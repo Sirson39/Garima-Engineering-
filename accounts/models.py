@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models.functions import Lower
 
 
 class OrganizationCategory(models.Model):
@@ -431,6 +432,9 @@ class User(AbstractUser):
 
     class Meta:
         ordering = ["first_name", "last_name", "username"]
+        constraints = [
+            models.UniqueConstraint(Lower("email"), condition=~models.Q(email=""), name="unique_user_login_email_ci"),
+        ]
 
     def __str__(self) -> str:
         return self.get_full_name() or self.username

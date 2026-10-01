@@ -18,6 +18,7 @@ from django import forms
 from django.views.generic import CreateView, DetailView, FormView, ListView, View
 
 from core.services import log_audit, notify_user
+from accounts.workspace_access import active_membership, organization_employees
 from projects.forms import (
     ClientForm,
     GovernmentRecordForm,
@@ -92,6 +93,9 @@ class BaseTableListView(LoginRequiredMixin, ListView):
         context["headers"] = self.headers
         context["rows"] = [self.row_for_object(obj) for obj in context["object_list"]]
         context["create_url"] = reverse(self.create_url_name) if self.create_url_name else ""
+        membership = getattr(self.request, "workspace_membership", None)
+        if membership and membership.role != "admin":
+            context["create_url"] = ""
         context["create_label"] = self.create_label
         context["empty_text"] = self.empty_text
         return context
@@ -158,8 +162,14 @@ class ProjectListView(BaseTableListView):
         context = super().get_context_data(**kwargs)
         from workflows.models import ServiceType
 
+        membership = getattr(self.request, "workspace_membership", None)
+        if membership and membership.role != "admin":
+            context["headers"] = context["headers"][:-1]
+            for row in context["rows"]:
+                row["cells"] = row["cells"][:-1]
+
         context["service_types"] = ServiceType.objects.filter(is_active=True).order_by("name")
-        context["employees"] = User.objects.filter(is_active=True, is_staff=True).order_by("first_name", "last_name")
+        context["employees"] = organization_employees(getattr(self.request.user, "_workspace_organization_id", self.request.user.company_id))
         context["status_choices"] = Project._meta.get_field("status").choices
         context["selected"] = self.request.GET
         query_params = self.request.GET.copy()
@@ -199,6 +209,9 @@ class ClientListView(BaseTableListView):
 
     def get_queryset(self):
         qs = Client.objects.filter(is_deleted=False)
+        membership = active_membership(self.request.user)
+        if getattr(self.request.user, "_workspace_organization_id", self.request.user.company_id):
+            qs = qs.filter(organization_id=membership.organization_id) if membership else qs.none()
         q = self.request.GET.get("q", "").strip()
         if q:
             qs = qs.filter(
@@ -228,8 +241,9 @@ class TaskListView(BaseTableListView):
     headers = ["Task", "Project", "Assigned To", "Status", "Priority", "Due Date"]
 
     def get_queryset(self):
-        qs = Task.objects.filter(is_deleted=False).select_related("project", "assigned_employee")
-        if not self.request.user.is_staff:
+        qs = Task.objects.filter(is_deleted=False, project__in=project_queryset_for_user(self.request.user)).select_related("project", "assigned_employee")
+        membership = active_membership(self.request.user)
+        if (membership and membership.role != "admin") or (not membership and not self.request.user.is_staff):
             qs = qs.filter(assigned_employee=self.request.user)
         return qs.order_by("status", "due_date", "-updated_at")
 
@@ -260,8 +274,7 @@ class DocumentListView(BaseTableListView):
 
     def get_queryset(self):
         qs = ProjectDocument.objects.filter(is_deleted=False).select_related("project", "category", "uploaded_by")
-        if not self.request.user.is_staff:
-            qs = qs.filter(project__in=project_queryset_for_user(self.request.user))
+        qs = qs.filter(project__in=project_queryset_for_user(self.request.user))
         return qs
 
     def row_for_object(self, doc):
@@ -288,8 +301,7 @@ class FileTransferListView(BaseTableListView):
 
     def get_queryset(self):
         qs = PhysicalFileTransfer.objects.filter(is_deleted=False).select_related("project")
-        if not self.request.user.is_staff:
-            qs = qs.filter(project__in=project_queryset_for_user(self.request.user))
+        qs = qs.filter(project__in=project_queryset_for_user(self.request.user))
         return qs
 
     def row_for_object(self, transfer):
@@ -315,8 +327,7 @@ class SiteVisitListView(BaseTableListView):
 
     def get_queryset(self):
         qs = SiteVisit.objects.filter(is_deleted=False).select_related("project", "assigned_engineer")
-        if not self.request.user.is_staff:
-            qs = qs.filter(project__in=project_queryset_for_user(self.request.user))
+        qs = qs.filter(project__in=project_queryset_for_user(self.request.user))
         return qs
 
     def row_for_object(self, visit):
@@ -341,8 +352,7 @@ class GovernmentRecordListView(BaseTableListView):
 
     def get_queryset(self):
         qs = GovernmentRecord.objects.filter(is_deleted=False).select_related("project")
-        if not self.request.user.is_staff:
-            qs = qs.filter(project__in=project_queryset_for_user(self.request.user))
+        qs = qs.filter(project__in=project_queryset_for_user(self.request.user))
         return qs
 
     def row_for_object(self, record):
@@ -367,8 +377,7 @@ class MunicipalityActivityListView(BaseTableListView):
 
     def get_queryset(self):
         qs = MunicipalityActivity.objects.filter(is_deleted=False).select_related("project")
-        if not self.request.user.is_staff:
-            qs = qs.filter(project__in=project_queryset_for_user(self.request.user))
+        qs = qs.filter(project__in=project_queryset_for_user(self.request.user))
         return qs
 
     def row_for_object(self, activity):
@@ -392,8 +401,7 @@ class PaymentListView(BaseTableListView):
 
     def get_queryset(self):
         qs = Payment.objects.filter(is_deleted=False).select_related("project")
-        if not self.request.user.is_staff:
-            qs = qs.filter(project__in=project_queryset_for_user(self.request.user))
+        qs = qs.filter(project__in=project_queryset_for_user(self.request.user))
         return qs
 
     def row_for_object(self, payment):
@@ -469,6 +477,14 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
     template_name = "projects/project_form.html"
     page_title = "New Project"
 
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        membership = active_membership(self.request.user)
+        if membership:
+            form.fields["client"].queryset = Client.objects.filter(organization=membership.organization, is_deleted=False)
+            form.fields["members"].queryset = organization_employees(membership.organization_id)
+        return form
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["page_title"] = self.page_title
@@ -478,6 +494,9 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
         from django.db import transaction
 
         with transaction.atomic():
+            membership = active_membership(self.request.user)
+            if membership:
+                form.instance.organization = membership.organization
             response = super().form_valid(form)
             self.object.created_by = self.request.user
             self.object.updated_by = self.request.user
@@ -507,6 +526,9 @@ class ClientCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user
+        membership = active_membership(self.request.user)
+        if membership:
+            form.instance.organization = membership.organization
         messages.success(self.request, "Client saved successfully.")
         return super().form_valid(form)
 
@@ -541,7 +563,7 @@ class ProjectDocumentUploadView(ProjectScopedFormView):
         form = super().get_form(form_class)
         form.fields["category"].queryset = self.project.service_type.document_categories.filter(is_active=True).order_by("order", "name")
         form.fields["checklist_item"].queryset = self.project.checklist_items.filter(is_deleted=False).order_by("template__order")
-        form.fields["checked_by"].queryset = User.objects.filter(is_active=True, is_staff=True).order_by("first_name", "last_name")
+        form.fields["checked_by"].queryset = organization_employees(getattr(self.request.user, "_workspace_organization_id", self.request.user.company_id))
         return form
 
     def form_valid(self, form):
@@ -613,7 +635,7 @@ class TaskCreateView(ProjectScopedCreateView):
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         form.fields["related_stage"].queryset = self.project.stage_histories.order_by("-started_at")
-        form.fields["assigned_employee"].queryset = User.objects.filter(is_active=True, is_staff=True).order_by("first_name", "last_name")
+        form.fields["assigned_employee"].queryset = organization_employees(getattr(self.request.user, "_workspace_organization_id", self.request.user.company_id))
         return form
 
     def save_object(self, form):
@@ -657,7 +679,7 @@ class SiteVisitCreateView(ProjectScopedCreateView):
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
-        form.fields["assigned_engineer"].queryset = User.objects.filter(is_active=True, is_staff=True).order_by("first_name", "last_name")
+        form.fields["assigned_engineer"].queryset = organization_employees(getattr(self.request.user, "_workspace_organization_id", self.request.user.company_id))
         form.fields["recorded_by"].widget = forms.HiddenInput()
         form.fields["recorded_by"].initial = self.request.user.pk
         return form

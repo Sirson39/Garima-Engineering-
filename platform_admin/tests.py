@@ -115,7 +115,8 @@ class PlatformAdministrationTests(TestCase):
         self.client.force_login(admin)
         response = self.client.post(
             reverse("organization-user-create"),
-            {"email": "engineer@client.test", "role": "engineer", "initial_password": "Temporary123!"},
+            {"first_name": "Engineer", "email": "engineer@client.test", "role": "engineer",
+             "initial_password": "Temporary123!", "confirm_password": "Temporary123!"},
         )
         self.assertRedirects(response, reverse("users-roles"))
         self.assertTrue(User.objects.filter(email="engineer@client.test", company=company).exists())

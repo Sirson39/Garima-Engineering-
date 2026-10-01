@@ -22,17 +22,17 @@
     <div class="col-md-3"><div class="surface-soft p-3 h-100"><div class="soft-muted small">Current stage</div><div class="fw-semibold">{{ object.current_stage_template.name|default:object.status }}</div></div></div>
     <div class="col-md-3"><div class="surface-soft p-3 h-100"><div class="soft-muted small">Responsible</div><div class="fw-semibold">{{ object.current_responsible_employee.display_name|default:"Unassigned" }}</div></div></div>
     <div class="col-md-3"><div class="surface-soft p-3 h-100"><div class="soft-muted small">File holder</div><div class="fw-semibold">{{ object.current_file_holder|default:object.current_file_location }}</div></div></div>
-    <div class="col-md-3"><div class="surface-soft p-3 h-100"><div class="soft-muted small">Balance</div><div class="fw-semibold">{{ object.remaining_balance|floatformat:2 }}</div></div></div>
+{% if not engineering_employee %}    <div class="col-md-3"><div class="surface-soft p-3 h-100"><div class="soft-muted small">Balance</div><div class="fw-semibold">{{ object.remaining_balance|floatformat:2 }}</div></div></div>{% endif %}
   </div>
 
   <div class="d-flex flex-wrap gap-2 mt-3">
     <a class="btn btn-primary" href="{% url 'project-document-upload' object.pk %}">Upload Document</a>
-    <a class="btn btn-outline-primary" href="{% url 'project-task-create' object.pk %}">Add Task</a>
+{% if not engineering_employee %}    <a class="btn btn-outline-primary" href="{% url 'project-task-create' object.pk %}">Add Task</a>{% endif %}
     <a class="btn btn-outline-primary" href="{% url 'project-file-transfer-create' object.pk %}">Record File Handover</a>
     <a class="btn btn-outline-primary" href="{% url 'project-site-visit-create' object.pk %}">Add Site Visit</a>
     <a class="btn btn-outline-primary" href="{% url 'project-government-record-create' object.pk %}">Government Record</a>
     <a class="btn btn-outline-primary" href="{% url 'project-municipality-activity-create' object.pk %}">Municipality Note</a>
-    <a class="btn btn-accent" href="{% url 'project-payment-create' object.pk %}">Add Payment</a>
+{% if not engineering_employee %}    <a class="btn btn-accent" href="{% url 'project-payment-create' object.pk %}">Add Payment</a>{% endif %}
     <a class="btn btn-outline-secondary" href="{% url 'project-comment-create' object.pk %}">Add Comment</a>
   </div>
 </div>
@@ -53,7 +53,7 @@
   <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#government" type="button">Government</button></li>
   <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#municipality" type="button">Municipality</button></li>
   <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#files" type="button">File Register</button></li>
-  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#payments" type="button">Payments</button></li>
+{% if not engineering_employee %}  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#payments" type="button">Payments</button></li>{% endif %}
   <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#comments" type="button">Comments</button></li>
   <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#audit" type="button">Audit</button></li>
 </ul>
@@ -75,9 +75,9 @@
                 <tr><th>Property location</th><td>{{ object.property_location|default:"-" }}</td></tr>
                 <tr><th>Kitta / Sheet</th><td>{{ object.kitta_number|default:"-" }} / {{ object.sheet_number|default:"-" }}</td></tr>
                 <tr><th>Government application no.</th><td>{{ object.government_application_number|default:"-" }}</td></tr>
-                <tr><th>Project fee</th><td>{{ object.project_fee|floatformat:2 }}</td></tr>
-                <tr><th>Amount received</th><td>{{ object.amount_received|floatformat:2 }}</td></tr>
-                <tr><th>Remaining balance</th><td>{{ object.remaining_balance|floatformat:2 }}</td></tr>
+{% if not engineering_employee %}                <tr><th>Project fee</th><td>{{ object.project_fee|floatformat:2 }}</td></tr>{% endif %}
+{% if not engineering_employee %}                <tr><th>Amount received</th><td>{{ object.amount_received|floatformat:2 }}</td></tr>{% endif %}
+{% if not engineering_employee %}                <tr><th>Remaining balance</th><td>{{ object.remaining_balance|floatformat:2 }}</td></tr>{% endif %}
                 <tr><th>Current file holder</th><td>{{ object.current_file_holder|default:object.current_file_location }}</td></tr>
                 <tr><th>Last file handover</th><td>{{ object.last_file_handover_at|default:"-" }}</td></tr>
               </tbody>
@@ -86,6 +86,7 @@
         </div>
       </div>
       <div class="col-xl-5">
+{% if not engineering_employee %}
         <div class="surface p-3 mb-3">
           <div class="section-title">Workflow Control</div>
           <form method="post" action="{% url 'project-stage-advance' object.pk %}">
@@ -106,6 +107,7 @@
           </form>
         </div>
 
+{% endif %}
       <div class="surface p-3">
           <div class="section-title">Audit Meta</div>
           <div class="small soft-muted">Created by: {{ object.created_by.display_name|default:"-" }}</div>
@@ -205,7 +207,7 @@
     <div class="surface p-3">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <div class="section-title mb-0">Tasks</div>
-        <a class="btn btn-sm btn-primary" href="{% url 'project-task-create' object.pk %}">Add task</a>
+{% if not engineering_employee %}        <a class="btn btn-sm btn-primary" href="{% url 'project-task-create' object.pk %}">Add task</a>{% endif %}
       </div>
       <div class="table-responsive">
         <table class="table table-sm mb-0">
@@ -324,6 +326,7 @@
     </div>
   </div>
 
+{% if not engineering_employee %}
   <div class="tab-pane fade" id="payments">
     <div class="surface p-3">
       <div class="section-title">Payments</div>
@@ -348,6 +351,7 @@
     </div>
   </div>
 
+{% endif %}
   <div class="tab-pane fade" id="comments">
     <div class="surface p-3">
       <div class="d-flex justify-content-between align-items-center mb-3">

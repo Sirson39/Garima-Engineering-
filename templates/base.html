@@ -34,6 +34,7 @@
       <div class="offcanvas-body">
         <nav class="sidebar-nav" aria-label="Main navigation">
           {% block workspace_navigation %}
+          {% if engineering_employee %}{% include "accounts/employee_navigation.html" %}{% else %}
           <div class="nav-group">
             <div class="nav-group-label">Main</div>
             <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'office-dashboard' or request.resolver_match.url_name == 'valuation-dashboard' %}active{% endif %}" href="{% if user.company.system_template.code == 'general-office-management' %}{% url 'office-dashboard' %}{% elif user.company.system_template.code == 'valuation-management' %}{% url 'valuation-dashboard' %}{% else %}{% url 'dashboard' %}{% endif %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 11 8-7 8 7v9H4zM9 20v-6h6v6"/></svg></span>Dashboard</a>
@@ -57,10 +58,11 @@
             <summary class="nav-group-label">Finance &amp; Management <span>⌄</span></summary>
             <a class="nav-link {% if request.resolver_match.url_name == 'payments' %}active{% endif %}" href="{% url 'payments' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M14.5 9.5c-.5-.7-1.3-1-2.5-1-1.3 0-2.2.6-2.2 1.5 0 2.3 4.4 1.1 4.4 3.5 0 .9-.9 1.5-2.2 1.5-1.1 0-2-.3-2.6-1M12 6.5v11"/></svg></span>Payments</a>
             <a class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}" href="{% url 'reports' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg></span>Reports</a>
-            <a class="nav-link {% if request.resolver_match.url_name == 'users-roles' %}active{% endif %}" href="{% url 'users-roles' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20c.5-3.2 2.4-5 6-5 1.3 0 2.4.2 3.3.7M16 11a3 3 0 1 0 0-6M15 15c3.4 0 5.2 1.8 6 5"/></svg></span>Users &amp; Roles</a>
+            <a class="nav-link {% if request.resolver_match.url_name == 'users-roles' %}active{% endif %}" href="{% url 'users-roles' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20c.5-3.2 2.4-5 6-5 1.3 0 2.4.2 3.3.7M16 11a3 3 0 1 0 0-6M15 15c3.4 0 5.2 1.8 6 5"/></svg></span>Engineers &amp; Staff</a>
             <a class="nav-link {% if request.resolver_match.url_name == 'system-settings' %}active{% endif %}" href="{% url 'system-settings' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-2.6v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1A1.7 1.7 0 0 0 8 15a1.7 1.7 0 0 0-1.5-1H6v-2.6h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5v-.2h2.6v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.2V14h-.2a1.7 1.7 0 0 0-1.5 1z"/></svg></span>System Settings</a>
             <a class="nav-link {% if request.resolver_match.url_name == 'workflow-catalog' %}active{% endif %}" href="{% url 'workflow-catalog' %}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v14H5zM8 9h8M8 13h8M8 17h5"/></svg></span>Workflow Catalog</a>
           </details>{% endif %}
+          {% endif %}
           {% endblock %}
           {% if user.is_authenticated and user.is_platform_admin or user.is_superuser %}
             <div class="nav-group">

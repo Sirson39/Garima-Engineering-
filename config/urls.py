@@ -3,7 +3,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-from core.views import DashboardView, ReportsView, SystemSettingsView
+from core.views import DashboardView, EmployeeDashboardView, ReportsView, SystemSettingsView
 from accounts.views import UnifiedLoginView
 
 
@@ -11,6 +11,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", UnifiedLoginView.as_view(), name="home"),
     path("workspace/", DashboardView.as_view(), name="dashboard"),
+    path("workspace/engineer/", EmployeeDashboardView.as_view(account_type="engineer"), name="engineer-dashboard"),
+    path("workspace/staff/", EmployeeDashboardView.as_view(account_type="staff"), name="staff-dashboard"),
     path("", include("accounts.urls")),
     path("", include("projects.urls")),
     path("construction/", include("construction.urls")),

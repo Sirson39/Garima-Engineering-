@@ -3,6 +3,7 @@ from __future__ import annotations
 from django import forms
 from django.contrib.auth import get_user_model
 
+from accounts.workspace_access import organization_employees
 from core.forms import BootstrapFormMixin, FileUploadValidationMixin
 from projects.constants import DOCUMENT_APPROVAL_CHOICES, DOCUMENT_CONFIDENTIALITY_CHOICES, PAYMENT_METHOD_CHOICES, PRIORITY_CHOICES, PROJECT_STATUS_CHOICES, TASK_PRIORITY_CHOICES, TASK_STATUS_CHOICES, VISIT_STATUS_CHOICES
 from projects.models import (
@@ -124,7 +125,7 @@ class ProjectStageAdvanceForm(BootstrapFormMixin, forms.Form):
             else:
                 choices = project.service_type.workflow_stages.order_by("order")
             self.fields["target_stage"].queryset = choices
-            self.fields["assigned_employee"].queryset = User.objects.filter(is_active=True, is_staff=True).order_by("first_name", "last_name")
+            self.fields["assigned_employee"].queryset = organization_employees(project.organization_id) if project.organization_id else User.objects.filter(is_active=True, is_staff=True)
         else:
             self.fields["target_stage"].queryset = WorkflowStageTemplate.objects.all()
             self.fields["assigned_employee"].queryset = User.objects.filter(is_active=True, is_staff=True)

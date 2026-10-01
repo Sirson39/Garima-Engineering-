@@ -82,20 +82,32 @@ class UnifiedAuthenticationForm(forms.Form):
 
 
 class OrganizationUserForm(BootstrapFormMixin, forms.Form):
-    email = forms.EmailField(label="User email")
-    role = forms.ChoiceField(label="Organization role", choices=[("engineer", "Engineer"), ("staff", "Staff")])
+    first_name = forms.CharField(max_length=150)
+    last_name = forms.CharField(max_length=150, required=False)
+    email = forms.EmailField(label="Login email", max_length=150, help_text="Each person must have a different email address. This is their login ID.")
+    role = forms.ChoiceField(label="Account type", choices=[("engineer", "Engineer"), ("staff", "Staff")])
     initial_password = forms.CharField(label="Temporary first-login password", min_length=8, widget=forms.PasswordInput)
+    confirm_password = forms.CharField(label="Confirm password", widget=forms.PasswordInput)
 
     def clean_email(self):
         email = self.cleaned_data["email"].lower()
-        if User.objects.filter(email__iexact=email).exists():
+        if User.objects.filter(email__iexact=email).exists() or User.objects.filter(username__iexact=email).exists():
             raise ValidationError("This email is already in use.")
         return email
 
-    def clean_initial_password(self):
-        password = self.cleaned_data["initial_password"]
-        validate_password(password)
-        return password
+    def clean(self):
+        data = super().clean()
+        password = data.get("initial_password")
+        if password:
+            candidate = User(username=data.get("email", ""), email=data.get("email", ""),
+                             first_name=data.get("first_name", ""), last_name=data.get("last_name", ""))
+            try:
+                validate_password(password, candidate)
+            except ValidationError as exc:
+                self.add_error("initial_password", exc)
+            if password != data.get("confirm_password"):
+                self.add_error("confirm_password", "The passwords do not match.")
+        return data
 
 
 class UserForm(BootstrapFormMixin, forms.ModelForm):

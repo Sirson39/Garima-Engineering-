@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{{ engineering_membership.get_role_display }} dashboard{% endblock %}
+{% block content %}
+<div class="mb-4"><div class="eyebrow">{{ team_organization.name }}</div><h1 class="dashboard-title">{% block dashboard_heading %}{% endblock %}</h1><p class="dashboard-subtitle">Welcome, {{ user.display_name }}. {% block dashboard_description %}{% endblock %}</p></div>
+<div class="row g-3 mb-4">
+  <div class="col-sm-4"><div class="surface p-4"><div class="soft-muted">Assigned projects</div><div class="h2 mb-0 mt-2">{{ project_count }}</div></div></div>
+  <div class="col-sm-4"><div class="surface p-4"><div class="soft-muted">Open tasks</div><div class="h2 mb-0 mt-2">{{ open_task_count }}</div></div></div>
+  <div class="col-sm-4"><div class="surface p-4"><div class="soft-muted">Overdue tasks</div><div class="h2 mb-0 mt-2">{{ overdue_count }}</div></div></div>
+</div>
+<div class="row g-4">
+  <div class="col-xl-7"><div class="surface p-4 h-100">
+    <div class="d-flex justify-content-between mb-3"><h2 class="h5">My tasks</h2><a href="{% url 'tasks' %}">View all</a></div>
+    {% for task in my_tasks %}<div class="border-bottom py-3"><a class="fw-semibold text-decoration-none" href="{% url 'project-detail' task.project_id %}">{{ task.title }}</a><div class="soft-muted small mt-1">{{ task.project.project_number }} / {{ task.status }} / Due {{ task.due_date|default:"not set" }}</div></div>
+    {% empty %}<p class="soft-muted py-4 mb-0">No open tasks assigned to you yet.</p>{% endfor %}
+  </div></div>
+  <div class="col-xl-5">{% block account_work %}{% endblock %}</div>
+</div>
+<div class="surface p-4 mt-4"><h2 class="h5 mb-3">My projects</h2>
+  {% for project in my_projects %}<div class="d-flex justify-content-between gap-3 border-bottom py-3"><a href="{% url 'project-detail' project.pk %}">{{ project.project_number }} / {{ project.client.full_name }}</a><span class="soft-muted">{{ project.status }}</span></div>
+  {% empty %}<p class="soft-muted mb-0">Your administrator will assign projects here.</p>{% endfor %}
+</div>
+{% endblock %}

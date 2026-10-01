@@ -1,0 +1,5 @@
+{% extends "core/employee_dashboard.html" %}
+{% block dashboard_heading %}Engineer dashboard{% endblock %}
+{% block dashboard_description %}Your project work, tasks and upcoming site visits are here.{% endblock %}
+{% block account_work %}<div class="surface p-4 h-100"><h2 class="h5 mb-3">My upcoming site visits</h2>
+{% for visit in my_visits %}<div class="border-bottom py-3"><a href="{% url 'project-detail' visit.project_id %}">{{ visit.project.project_number }}</a><div class="soft-muted small">{{ visit.scheduled_date|default:"Date not set" }} / {{ visit.visit_status }}</div></div>{% empty %}<p class="soft-muted mb-0">No upcoming site visits assigned to you.</p>{% endfor %}</div>{% endblock %}
